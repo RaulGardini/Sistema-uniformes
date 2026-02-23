@@ -3,7 +3,7 @@ import { supabase } from "./supabase";
 import imgBlusa from "./img/bluda.png";
 import imgShort from "./img/short.png";
 import imgRegata from "./img/regata.png";
-import imgCalcaMoleton from "./img/calcaMoleton.png";
+import imgCalcaMoleton from "./img/calcamoleton.png";
 
 const PECAS_CONFIG = [
   { img: imgBlusa, nome: "Blusa",         preco: 58.00 },
