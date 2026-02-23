@@ -1,12 +1,16 @@
 import { useState, useEffect } from "react";
 import { supabase } from "./supabase";
+import imgBlusa from "./img/bluda.png";
+import imgShort from "./img/short.png";
+import imgRegata from "./img/regata.png";
+import imgCalcaMoleton from "./img/calça_moleton.png";
 
 const PECAS_CONFIG = [
-  { nome: "Blusa",         preco: 58.00, emoji: "👕" },
-  { nome: "Regata",        preco: 29.00, emoji: "🎽" },
-  { nome: "Short",         preco: 69.00, emoji: "🩳" },
-  { nome: "Calça Moletom", preco: 89.00, emoji: "👖" },
-  { nome: "Blusa Moletom", preco: 99.00, emoji: "🧥" },
+  { img: imgBlusa, nome: "Blusa",         preco: 58.00 },
+  { img: imgShort, nome: "Regata",        preco: 29.00 },
+  { img: imgRegata, nome: "Short",         preco: 69.00 },
+  { img: imgCalcaMoleton, nome: "Calça Moletom", preco: 89.00 },
+  { img: imgCalcaMoleton, nome: "Blusa Moletom", preco: 99.00 },
 ];
 const NOMES_PECAS = PECAS_CONFIG.map(p => p.nome);
 const TAMANHOS = ["PP", "P", "M", "G", "GG"];
@@ -15,15 +19,15 @@ const ADMIN_SENHA = "danca2025";
 const fmt = v => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 const C = {
-  bg:       "#0d0b16",
-  surface:  "#16122a",
-  border:   "#251f3e",
-  accent:   "#b97cf3",
-  accentD:  "#8b3cf7",
-  glow:     "rgba(185,124,243,0.13)",
-  gold:     "#f0c060",
-  text:     "#f0eaff",
-  muted:    "#8878b0",
+  bg:       "#000000",
+  surface:  "#000000",
+  border:   "#970097",
+  accent:   "#e879f9",
+  accentD:  "#a855f7",
+  glow:     "rgba(0, 0, 0, 0.16)",
+  gold:     "#f472b6",
+  text:     "#fdf4ff",
+  muted:    "#9b7ec8",
   success:  "#6ee7b7",
   danger:   "#f87171",
   dangerBg: "rgba(248,113,113,0.10)",
@@ -33,19 +37,20 @@ const css = `
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:${C.bg};color:${C.text};font-family:'DM Sans',sans-serif;min-height:100vh;}
-::-webkit-scrollbar{width:4px;}
-::-webkit-scrollbar-thumb{background:${C.accentD};border-radius:2px;}
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-thumb{background:linear-gradient(${C.accentD},${C.accent});border-radius:3px;}
 
 .grain{position:fixed;inset:0;z-index:0;pointer-events:none;
   background:
-    radial-gradient(ellipse 90% 55% at 50% -5%,rgba(139,60,247,0.22) 0%,transparent 65%),
-    radial-gradient(ellipse 45% 45% at 85% 90%,rgba(185,124,243,0.07) 0%,transparent 60%);}
+    radial-gradient(ellipse 85% 55% at 50% -8%,rgba(168,85,247,0.30) 0%,transparent 65%),
+    radial-gradient(ellipse 55% 45% at 90% 95%,rgba(244,114,182,0.13) 0%,transparent 60%),
+    radial-gradient(ellipse 40% 35% at 5% 55%,rgba(232,121,249,0.08) 0%,transparent 55%);}
 
-.wrap{position:relative;z-index:1;max-width:700px;margin:0 auto;padding:44px 20px 90px;}
+.wrap{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:44px 20px 90px;}
 
 .logo{text-align:center;margin-bottom:44px;}
 .logo-title{font-family:'Cormorant Garamond',serif;font-size:2.8rem;font-weight:700;
-  background:linear-gradient(130deg,${C.accent} 0%,${C.gold} 100%);
+  background:linear-gradient(135deg,#f472b6 0%,#e879f9 55%,#a855f7 100%);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.5px;}
 .logo-sub{font-size:.8rem;color:${C.muted};letter-spacing:3px;text-transform:uppercase;margin-top:5px;}
 
@@ -56,7 +61,7 @@ body{background:${C.bg};color:${C.text};font-family:'DM Sans',sans-serif;min-hei
 .tab:hover:not(.active){border-color:${C.muted};}
 
 .card{background:${C.surface};border:1px solid ${C.border};border-radius:20px;padding:28px;
-  margin-bottom:18px;box-shadow:0 0 40px rgba(139,60,247,.05);}
+  margin-bottom:18px;box-shadow:0 0 50px rgba(168,85,247,.08);}
 .card-title{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-style:italic;
   color:${C.accent};margin-bottom:20px;display:flex;align-items:center;gap:10px;}
 .card-title::before,.card-title::after{content:'';flex:1;height:1px;background:${C.border};}
@@ -70,12 +75,12 @@ input::placeholder{color:${C.muted};}
 
 .peca-grid{display:flex;flex-direction:column;gap:14px;}
 .peca-row{background:${C.bg};border:1.5px solid ${C.border};border-radius:14px;overflow:hidden;transition:border-color .2s,box-shadow .2s;}
-.peca-row.ativa{border-color:${C.accentD};box-shadow:0 0 0 1px ${C.accentD},inset 0 0 24px ${C.glow};}
+.peca-row.ativa{border-color:${C.accent};box-shadow:0 0 0 1px ${C.accent},inset 0 0 28px ${C.glow};}
 .peca-inner{display:flex;align-items:stretch;}
 .peca-foto{width:94px;min-height:94px;flex-shrink:0;background:${C.surface};
   display:flex;align-items:center;justify-content:center;font-size:2.2rem;position:relative;overflow:hidden;}
 .peca-foto img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;}
-.peca-info{flex:1;padding:14px 16px;}
+.peca-info{flex:1;padding:14px 16px;min-width:0;}
 .peca-nome-row{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:3px;}
 .peca-nome{font-size:.97rem;font-weight:600;}
 .peca-preco{font-family:'Cormorant Garamond',serif;font-size:1.15rem;color:${C.gold};font-weight:600;white-space:nowrap;}
@@ -95,18 +100,18 @@ input::placeholder{color:${C.muted};}
 .qty-num{width:24px;text-align:center;font-size:.88rem;font-weight:500;color:${C.muted};}
 .qty-num.has-val{color:${C.accent};}
 
-.total-bar{position:sticky;bottom:16px;background:rgba(22,18,42,.95);
-  backdrop-filter:blur(12px);border:1px solid ${C.border};border-radius:16px;
+.total-bar{position:sticky;bottom:16px;background:rgba(23,16,43,.96);
+  backdrop-filter:blur(14px);border:1px solid ${C.border};border-radius:16px;
   padding:14px 20px;display:flex;align-items:center;justify-content:space-between;
-  box-shadow:0 8px 32px rgba(0,0,0,.5);margin-top:16px;}
+  box-shadow:0 8px 32px rgba(0,0,0,.5),0 0 0 1px rgba(232,121,249,.07);margin-top:16px;}
 .total-label{font-size:.78rem;color:${C.muted};}
 .total-val{font-family:'Cormorant Garamond',serif;font-size:1.5rem;color:${C.gold};font-weight:700;}
 
-.btn-primary{width:100%;background:linear-gradient(135deg,${C.accentD},#6d28d9);
+.btn-primary{width:100%;background:linear-gradient(135deg,#c026d3,#7c3aed);
   border:none;border-radius:13px;color:white;font-family:'DM Sans',sans-serif;
   font-size:.97rem;font-weight:500;padding:15px;cursor:pointer;transition:all .2s;
-  box-shadow:0 4px 20px rgba(139,60,247,.3);margin-top:8px;}
-.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 28px rgba(139,60,247,.45);}
+  box-shadow:0 4px 22px rgba(192,38,211,.35);margin-top:8px;}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 30px rgba(192,38,211,.5);}
 .btn-primary:active{transform:translateY(0);}
 .btn-primary:disabled{opacity:.4;cursor:not-allowed;transform:none;}
 
@@ -123,7 +128,7 @@ input::placeholder{color:${C.muted};}
 
 .stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;}
 .stat-card{background:${C.bg};border:1.5px solid ${C.border};border-radius:13px;padding:15px;text-align:center;}
-.stat-card.hl{border-color:${C.accentD};background:${C.glow};}
+.stat-card.hl{border-color:${C.accentD};background:rgba(168,85,247,0.10);}
 .stat-num{font-family:'Cormorant Garamond',serif;font-size:2rem;color:${C.accent};font-weight:700;}
 .stat-lbl{font-size:.75rem;color:${C.muted};margin-top:2px;}
 
@@ -144,8 +149,8 @@ input::placeholder{color:${C.muted};}
 .pedido-item{background:${C.bg};border:1px solid ${C.border};border-radius:12px;padding:15px 18px;margin-bottom:9px;}
 .pedido-nome{font-weight:600;margin-bottom:8px;font-size:.97rem;}
 .pedido-tags{display:flex;flex-wrap:wrap;gap:5px;}
-.tag{background:${C.glow};border:1px solid ${C.accentD};border-radius:6px;font-size:.73rem;color:${C.accent};padding:3px 9px;}
-.pedido-footer{display:flex;align-items:center;justify-content:space-between;margin-top:12px;gap:10px;}
+.tag{background:rgba(232,121,249,0.10);border:1px solid ${C.accentD};border-radius:6px;font-size:.73rem;color:${C.accent};padding:3px 9px;}
+.pedido-footer{display:flex;align-items:center;justify-content:space-between;margin-top:12px;gap:10px;flex-wrap:wrap;}
 .pedido-hora{font-size:.72rem;color:${C.muted};}
 .pedido-total-lbl{font-family:'Cormorant Garamond',serif;font-size:.97rem;color:${C.gold};}
 
@@ -168,13 +173,13 @@ input::placeholder{color:${C.muted};}
 .foto-nome span{font-size:.75rem;color:${C.muted};}
 .foto-body input{margin-top:6px;font-size:.77rem;padding:7px 10px;}
 
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(5px);
-  z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);
+  z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px;
   animation:fadeIn .15s ease;}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 .modal{background:${C.surface};border:1px solid ${C.border};border-radius:20px;
   padding:32px 28px;max-width:380px;width:100%;
-  box-shadow:0 24px 60px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.04);
+  box-shadow:0 24px 60px rgba(0,0,0,.6),0 0 0 1px rgba(232,121,249,.08);
   animation:slideUp .22s cubic-bezier(.175,.885,.32,1.275);}
 @keyframes slideUp{from{transform:translateY(22px);opacity:0}to{transform:translateY(0);opacity:1}}
 .modal-icon{font-size:2.8rem;text-align:center;margin-bottom:14px;}
@@ -188,6 +193,52 @@ input::placeholder{color:${C.muted};}
 .btn-cancel{flex:1;background:none;border:1.5px solid ${C.border};border-radius:11px;color:${C.muted};
   font-family:'DM Sans',sans-serif;font-size:.9rem;padding:13px;cursor:pointer;transition:all .2s;}
 .btn-cancel:hover{border-color:${C.muted};color:${C.text};}
+
+/* ── Responsivo ── */
+@media(max-width:480px){
+  .wrap{padding:20px 14px 80px;}
+  .logo{margin-bottom:28px;}
+  .logo-title{font-size:2rem;}
+  .logo-sub{font-size:.7rem;letter-spacing:2px;}
+  .tabs{gap:6px;margin-top:14px;}
+  .tab{padding:5px 13px;font-size:.78rem;}
+  .card{padding:16px 14px;}
+  .card-title{font-size:1rem;margin-bottom:14px;}
+  .peca-foto{width:76px;min-height:76px;}
+  .peca-info{padding:10px 10px;}
+  .peca-nome{font-size:.88rem;}
+  .peca-preco{font-size:1rem;}
+  .toggle-btn{font-size:.68rem;padding:3px 8px;}
+  .tam-grid{gap:4px;margin-top:10px;}
+  .qty-btn{width:22px;height:22px;font-size:.82rem;}
+  .qty-num{width:18px;font-size:.78rem;}
+  .total-bar{padding:11px 14px;border-radius:13px;bottom:10px;}
+  .total-val{font-size:1.25rem;}
+  .total-label{font-size:.72rem;}
+  .btn-primary{padding:13px;font-size:.9rem;}
+  .btn-ghost{padding:7px 13px;font-size:.8rem;}
+  .success-box{padding:32px 16px;}
+  .stat-grid{grid-template-columns:repeat(2,1fr);}
+  .foto-grid{grid-template-columns:1fr;}
+  .modal{padding:24px 18px;}
+  .ptab-row{gap:4px;}
+  .ptab{font-size:.72rem;padding:4px 9px;}
+  .pedido-item{padding:12px 13px;}
+}
+@media(max-width:360px){
+  .logo-title{font-size:1.75rem;}
+  .tam-grid{gap:2px;}
+  .qty-btn{width:19px;height:19px;font-size:.76rem;}
+  .tam-label{font-size:.63rem;}
+  .toggle-btn{font-size:.64rem;padding:3px 6px;}
+}
+@media(min-width:481px) and (max-width:768px){
+  .wrap{padding:36px 24px 90px;}
+  .logo-title{font-size:2.55rem;}
+}
+@media(min-width:769px){
+  .wrap{padding:52px 28px 100px;}
+}
 `;
 
 /* ── helpers ── */
@@ -300,7 +351,7 @@ function AlunaPage({ fotos }) {
       </label>
       <input
         type="text"
-        placeholder="Ex: Maria da Silva"
+        placeholder="Ex: Raul Passos gardini"
         value={nome}
         autoFocus
         onChange={e => setNome(e.target.value)}
@@ -324,13 +375,11 @@ function AlunaPage({ fotos }) {
       <div className="card">
         <div className="card-title">Escolha o fardamento</div>
         <div className="peca-grid">
-          {PECAS_CONFIG.map(({ nome: pNome, preco, emoji }) => (
+          {PECAS_CONFIG.map(({ nome: pNome, preco, img }) => (
             <div key={pNome} className={`peca-row ${pecas[pNome].ativo ? "ativa" : ""}`}>
               <div className="peca-inner">
                 <div className="peca-foto">
-                  {fotos[pNome]
-                    ? <img src={fotos[pNome]} alt={pNome} onError={e => { e.target.style.display = "none"; }} />
-                    : <span>{emoji}</span>}
+                  <img src={img} alt={pNome} />
                 </div>
                 <div className="peca-info">
                   <div className="peca-nome-row">
