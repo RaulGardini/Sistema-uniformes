@@ -42,9 +42,9 @@ exports.handler = async (event) => {
       payer:              { name: nomeAluna },
       external_reference: pedidoId,
       back_urls: {
-        success: siteUrl,
-        failure: siteUrl,
-        pending: siteUrl,
+        success: `${siteUrl}/?collection_status=approved`,
+        failure: `${siteUrl}/?collection_status=rejected`,
+        pending: `${siteUrl}/?collection_status=pending`,
       },
       auto_return:          "approved",
       notification_url:     `${siteUrl}/.netlify/functions/webhook-pagamento`,
@@ -72,8 +72,7 @@ exports.handler = async (event) => {
     }
 
     const checkoutUrl = data.init_point;
-
-    console.log(`Preferência criada | Pedido: ${pedidoId} | Valor: ${valorFinal} | URL: ${checkoutUrl}`);
+    console.log(`Preferência criada | Pedido: ${pedidoId} | Valor: ${valorFinal}`);
 
     return {
       statusCode: 200,

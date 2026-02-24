@@ -49,20 +49,16 @@ const C = {
 /* ── Detecta status de retorno do Mercado Pago ── */
 function detectarStatusRetorno() {
   const params = new URLSearchParams(window.location.search);
-
-  // O Mercado Pago retorna com estes parâmetros:
-  // collection_status = approved | rejected | pending | null
-  // status = approved | rejected | pending | null
   const collectionStatus = params.get("collection_status");
   const status           = params.get("status");
   const paymentId        = params.get("payment_id") || params.get("collection_id");
 
-  // Se não tem nenhum parâmetro do MP, não é retorno
   if (!collectionStatus && !status && !paymentId) return null;
 
   const mpStatus = collectionStatus || status;
 
-  if (mpStatus === "approved") return "aprovado";
+  if (mpStatus === "approved")                             return "aprovado";
+  if (mpStatus === "pending" || mpStatus === "in_process") return "pendente";
   return "falhou";
 }
 
