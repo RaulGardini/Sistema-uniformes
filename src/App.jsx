@@ -390,7 +390,7 @@ function TelaPagamento({ nome, pecas, onVoltar }) {
       const { data: pedidoSalvo, error: errSalvar } = await supabase
         .from("pedidos")
         .insert([{
-          nome:             nome.trim(),
+          nome:             nomeCompleto,
           pecas,
           pagamento_status: "pendente",
           forma_pagamento:  formaSelecionada,
@@ -406,7 +406,7 @@ function TelaPagamento({ nome, pecas, onVoltar }) {
         body: JSON.stringify({
           pedidoId:  pedidoSalvo.id,
           forma:     formaSelecionada,
-          nomeAluna: nome.trim(),
+          nomeAluna: nomeCompleto,
         }),
       });
 
@@ -491,7 +491,11 @@ function TelaPagamento({ nome, pecas, onVoltar }) {
 function AlunaPage({ statusRetorno }) {
   const [step, setStep]         = useState(statusRetorno ? "retorno" : "nome");
   const [nome, setNome]         = useState("");
+  const [sobrenome, setSobrenome] = useState("");
   const [pecas, setPecas]       = useState(initPecas());
+
+  const nomeCompleto = `${nome.trim()} ${sobrenome.trim()}`.trim();
+  const nomeValido   = nome.trim().length >= 2 && sobrenome.trim().length >= 2;
 
   const totalQtd = Object.values(pecas).reduce(
     (a, p) => a + Object.values(p.tamanhos).reduce((s, v) => s + v, 0), 0
@@ -508,7 +512,7 @@ function AlunaPage({ statusRetorno }) {
     }));
   }
   function reiniciar() {
-    setNome(""); setPecas(initPecas()); setStep("nome");
+    setNome(""); setSobrenome(""); setPecas(initPecas()); setStep("nome");
     window.history.replaceState({}, "", "/");
   }
 
@@ -528,18 +532,30 @@ function AlunaPage({ statusRetorno }) {
     <div className="card">
       <div className="card-title">Identificação</div>
       <label style={{ display: "block", fontSize: ".8rem", color: C.muted, marginBottom: 8, letterSpacing: "1px", textTransform: "uppercase" }}>
-        Seu nome completo
+        Nome
       </label>
       <input
         type="text"
-        placeholder="Ex: Raul Passos Gardini"
+        placeholder="Ex: Raul"
         value={nome}
         autoFocus
         onChange={e => setNome(e.target.value)}
-        onKeyDown={e => { if (e.key === "Enter" && nome.trim().length >= 3) setStep("escolha"); }}
+        onKeyDown={e => { if (e.key === "Enter") document.getElementById("input-sobrenome").focus(); }}
       />
       <br /><br />
-      <button className="btn-primary" disabled={nome.trim().length < 3} onClick={() => setStep("escolha")}>
+      <label style={{ display: "block", fontSize: ".8rem", color: C.muted, marginBottom: 8, letterSpacing: "1px", textTransform: "uppercase" }}>
+        Sobrenome
+      </label>
+      <input
+        id="input-sobrenome"
+        type="text"
+        placeholder="Ex: Passos Gardini"
+        value={sobrenome}
+        onChange={e => setSobrenome(e.target.value)}
+        onKeyDown={e => { if (e.key === "Enter" && nomeValido) setStep("escolha"); }}
+      />
+      <br /><br />
+      <button className="btn-primary" disabled={!nomeValido} onClick={() => setStep("escolha")}>
         Continuar →
       </button>
     </div>
