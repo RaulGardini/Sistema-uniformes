@@ -14,7 +14,7 @@ const PECAS_CONFIG = [
 ];
 const NOMES_PECAS = PECAS_CONFIG.map(p => p.nome);
 const GRUPOS      = [
-  { label: "Adulto",   tamanhos: ["P", "M", "G"] },
+  { label: "Adulto",   tamanhos: ["PP", "P", "M", "G"] },
   { label: "Infantil", tamanhos: ["P", "M", "G"] },
 ];
 const TODAS_CHAVES = GRUPOS.flatMap(g => g.tamanhos.map(t => `${g.label} ${t}`));
@@ -794,7 +794,7 @@ function AdminPage({ onSair, adminSenha }) {
                   <thead>
                     <tr>
                       <th style={{ textAlign: "left", width: 80 }}>Grupo</th>
-                      {["P", "M", "G"].map(t => <th key={t}>{t}</th>)}
+                      {["PP", "P", "M", "G"].map(t => <th key={t}>{t}</th>)}
                       <th>Total</th>
                     </tr>
                   </thead>
