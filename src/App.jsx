@@ -310,18 +310,18 @@ function QtyControl({ value, onChange }) {
 
 /* ── TELA DE RETORNO DO MERCADO PAGO ── */
 function TelaRetorno({ status, onVoltar }) {
-  const isPendin = status === "pendente";
+  const isFail = status === "falhou";
   return (
     <div className="card">
       <div className="success-box">
-        <div className="suc-icon">{isPendin ? "🎉" : "😕"}</div>
-        <div className={`suc-title ${isPendin ? "" : "falhou"}`}>
-          {isPendin ? "Pagamento confirmado!" : "Pagamento não concluído"}
+        <div className="suc-icon">{isFail ? "😕" : "🎉"}</div>
+        <div className={`suc-title ${isFail ? "falhou" : ""}`}>
+          {isFail ? "Pagamento não confirmado!" : "Pagamento confirmado!"}
         </div>
         <div className="suc-sub">
-          {isPendin
-            ? "Seu pedido e pagamento foram confirmados. Retire o seu fardamento na loja TP. Obrigado!"
-            : "O pagamento não foi processado. Você pode tentar novamente."}
+          {isFail
+            ? "O pagamento não foi processado. Você pode tentar novamente."
+            : "Seu pedido e pagamento foram confirmados. Retire o seu fardamento na loja TP. Obrigado!"}
         </div>
         <br />
         <button className="btn-ghost" onClick={onVoltar}>← Voltar ao início</button>
