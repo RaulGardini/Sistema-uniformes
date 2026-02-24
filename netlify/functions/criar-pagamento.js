@@ -10,9 +10,9 @@ exports.handler = async (event) => {
       ? parseFloat((valor * 1.06).toFixed(2))
       : parseFloat(Number(valor).toFixed(2));
 
-    const siteUrl = process.env.URL || "http://localhost:8888";
+    const siteUrl  = process.env.URL || "http://localhost:8888";
+    const isTest   = process.env.MP_ENV !== "production";
 
-    // Configura métodos de pagamento por forma escolhida
     let paymentMethods = {};
     if (forma === "pix") {
       paymentMethods = {
@@ -37,14 +37,12 @@ exports.handler = async (event) => {
     }
 
     const preference = {
-      items: [
-        {
-          title:       "Fardamento Studio de Dança",
-          quantity:    1,
-          unit_price:  valorFinal,
-          currency_id: "BRL",
-        },
-      ],
+      items: [{
+        title:       "Fardamento Studio de Dança",
+        quantity:    1,
+        unit_price:  valorFinal,
+        currency_id: "BRL",
+      }],
       payer:              { name: nomeAluna },
       external_reference: pedidoId,
       back_urls: {
@@ -57,8 +55,6 @@ exports.handler = async (event) => {
       payment_methods:      paymentMethods,
       statement_descriptor: "STUDIO DANCA",
     };
-
-    console.log("Criando preferência MP com token:", process.env.MP_ACCESS_TOKEN?.slice(0, 20) + "...");
 
     const response = await fetch("https://api.mercadopago.com/checkout/preferences", {
       method:  "POST",
@@ -79,10 +75,12 @@ exports.handler = async (event) => {
       };
     }
 
-    // Tenta sandbox_init_point primeiro (credenciais de teste), senão usa init_point
-    const checkoutUrl = data.sandbox_init_point || data.init_point;
+    // Em produção usa init_point (real), em teste usa sandbox_init_point
+    const checkoutUrl = isTest
+      ? (data.sandbox_init_point || data.init_point)
+      : data.init_point;
 
-    console.log("Preferência criada:", data.id, "URL:", checkoutUrl);
+    console.log(`Modo: ${isTest ? "TESTE" : "PRODUÇÃO"} | URL: ${checkoutUrl}`);
 
     return {
       statusCode: 200,
