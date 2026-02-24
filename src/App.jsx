@@ -310,16 +310,16 @@ function QtyControl({ value, onChange }) {
 
 /* ── TELA DE RETORNO DO MERCADO PAGO ── */
 function TelaRetorno({ status, onVoltar }) {
-  const isAprovado = status === "aprovado";
+  const isPendin = status === "pendente";
   return (
     <div className="card">
       <div className="success-box">
-        <div className="suc-icon">{isAprovado ? "🎉" : "😕"}</div>
-        <div className={`suc-title ${isAprovado ? "" : "falhou"}`}>
-          {isAprovado ? "Pagamento confirmado!" : "Pagamento não concluído"}
+        <div className="suc-icon">{isPendin ? "🎉" : "😕"}</div>
+        <div className={`suc-title ${isPendin ? "" : "falhou"}`}>
+          {isPendin ? "Pagamento confirmado!" : "Pagamento não concluído"}
         </div>
         <div className="suc-sub">
-          {isAprovado
+          {isPendin
             ? "Seu pedido e pagamento foram confirmados. Retire o seu fardamento na loja TP. Obrigado!"
             : "O pagamento não foi processado. Você pode tentar novamente."}
         </div>
