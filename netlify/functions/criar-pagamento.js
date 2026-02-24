@@ -46,7 +46,7 @@ exports.handler = async (event) => {
         failure: `${siteUrl}/?collection_status=rejected`,
         pending: `${siteUrl}/?collection_status=pending`,
       },
-      auto_return:          "approved",
+      // auto_return removido → aluna vê a confirmação na tela do MP
       notification_url:     `${siteUrl}/.netlify/functions/webhook-pagamento`,
       payment_methods:      paymentMethods,
       statement_descriptor: "FARDAMENTO TP",
