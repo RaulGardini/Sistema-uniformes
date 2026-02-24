@@ -6,12 +6,8 @@ exports.handler = async (event) => {
   try {
     const { pedidoId, valor, forma, nomeAluna } = JSON.parse(event.body);
 
-    const valorFinal = forma === "cartao_2x"
-      ? parseFloat((valor * 1.06).toFixed(2))
-      : parseFloat(Number(valor).toFixed(2));
-
-    const siteUrl  = process.env.URL || "http://localhost:8888";
-    const isTest   = process.env.MP_ENV !== "production";
+    const valorFinal = parseFloat(Number(valor).toFixed(2));
+    const siteUrl    = process.env.URL || "http://localhost:8888";
 
     let paymentMethods = {};
     if (forma === "pix") {
@@ -38,7 +34,7 @@ exports.handler = async (event) => {
 
     const preference = {
       items: [{
-        title:       "Fardamento Studio de Dança",
+        title:       "Fardamento TP 2026",
         quantity:    1,
         unit_price:  valorFinal,
         currency_id: "BRL",
@@ -46,14 +42,14 @@ exports.handler = async (event) => {
       payer:              { name: nomeAluna },
       external_reference: pedidoId,
       back_urls: {
-        success: `${siteUrl}/?status=aprovado&pedido_id=${pedidoId}`,
-        failure: `${siteUrl}/?status=falhou&pedido_id=${pedidoId}`,
-        pending: `${siteUrl}/?status=pendente&pedido_id=${pedidoId}`,
+        success: siteUrl,
+        failure: siteUrl,
+        pending: siteUrl,
       },
       auto_return:          "approved",
       notification_url:     `${siteUrl}/.netlify/functions/webhook-pagamento`,
       payment_methods:      paymentMethods,
-      statement_descriptor: "STUDIO DANCA",
+      statement_descriptor: "FARDAMENTO TP",
     };
 
     const response = await fetch("https://api.mercadopago.com/checkout/preferences", {
@@ -75,10 +71,9 @@ exports.handler = async (event) => {
       };
     }
 
-    // Em produção usa init_point (real), em teste usa sandbox_init_point
     const checkoutUrl = data.init_point;
 
-    console.log(`Modo: ${isTest ? "TESTE" : "PRODUÇÃO"} | URL: ${checkoutUrl}`);
+    console.log(`Preferência criada | Pedido: ${pedidoId} | Valor: ${valorFinal} | URL: ${checkoutUrl}`);
 
     return {
       statusCode: 200,

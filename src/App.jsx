@@ -46,6 +46,26 @@ const C = {
   pixBg:    "rgba(0,179,126,0.10)",
 };
 
+/* ── Detecta status de retorno do Mercado Pago ── */
+function detectarStatusRetorno() {
+  const params = new URLSearchParams(window.location.search);
+
+  // O Mercado Pago retorna com estes parâmetros:
+  // collection_status = approved | rejected | pending | null
+  // status = approved | rejected | pending | null
+  const collectionStatus = params.get("collection_status");
+  const status           = params.get("status");
+  const paymentId        = params.get("payment_id") || params.get("collection_id");
+
+  // Se não tem nenhum parâmetro do MP, não é retorno
+  if (!collectionStatus && !status && !paymentId) return null;
+
+  const mpStatus = collectionStatus || status;
+
+  if (mpStatus === "approved") return "aprovado";
+  return "falhou";
+}
+
 const css = `
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -836,8 +856,8 @@ export default function App() {
   const [tela, setTela]           = useState("aluna");
   const [adminAuth, setAdminAuth] = useState(false);
 
-  const params        = new URLSearchParams(window.location.search);
-  const statusRetorno = params.get("status");
+  // Detecta retorno do Mercado Pago usando os parâmetros reais do MP
+  const statusRetorno = detectarStatusRetorno();
 
   return (
     <>
