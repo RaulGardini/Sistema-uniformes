@@ -390,7 +390,7 @@ function TelaPagamento({ nome, pecas, onVoltar }) {
       const { data: pedidoSalvo, error: errSalvar } = await supabase
         .from("pedidos")
         .insert([{
-          nome:             nomeCompleto,
+          nome:             nome,
           pecas,
           pagamento_status: "pendente",
           forma_pagamento:  formaSelecionada,
@@ -406,7 +406,7 @@ function TelaPagamento({ nome, pecas, onVoltar }) {
         body: JSON.stringify({
           pedidoId:  pedidoSalvo.id,
           forma:     formaSelecionada,
-          nomeAluna: nomeCompleto,
+          nomeAluna: nome,
         }),
       });
 
