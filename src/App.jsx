@@ -660,6 +660,7 @@ function AdminPage({ onSair }) {
   const [loading, setLoading]     = useState(true);
   const [modalId, setModalId]     = useState(null);
   const [erroAdmin, setErroAdmin] = useState("");
+  const [busca, setBusca]         = useState("");
 
   async function carregar() {
     setLoading(true); setErroAdmin("");
@@ -712,6 +713,9 @@ function AdminPage({ onSair }) {
   let pedidosFiltrados = pedidos || [];
   if (filtro !== "Todos") pedidosFiltrados = pedidosFiltrados.filter(p =>
     TODAS_CHAVES.some(k => (p.pecas?.[filtro]?.tamanhos?.[k] || 0) > 0)
+  );
+  if (busca) pedidosFiltrados = pedidosFiltrados.filter(p =>
+    p.nome?.toLowerCase().includes(busca.toLowerCase())
   );
 
   return (
@@ -809,6 +813,13 @@ function AdminPage({ onSair }) {
       {!loading && aba === "pedidos" && (
         <div className="card">
           <div className="card-title">Pedidos confirmados ({pedidosFiltrados?.length || 0})</div>
+          <input
+            type="text"
+            placeholder="Pesquisar por nome..."
+            value={busca}
+            onChange={e => setBusca(e.target.value)}
+            style={{ width: "100%", marginBottom: 14, padding: "8px 12px", borderRadius: 8, border: `1px solid ${C.border}`, background: "rgba(0,0,0,.2)", color: C.text, fontSize: ".88rem", outline: "none", boxSizing: "border-box" }}
+          />
 
           {pedidosFiltrados?.length === 0
             ? <div className="empty-state"><span className="em">📋</span>Nenhum pedido confirmado.</div>
