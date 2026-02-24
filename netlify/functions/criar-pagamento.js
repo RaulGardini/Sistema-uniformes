@@ -76,9 +76,7 @@ exports.handler = async (event) => {
     }
 
     // Em produção usa init_point (real), em teste usa sandbox_init_point
-    const checkoutUrl = isTest
-      ? (data.sandbox_init_point || data.init_point)
-      : data.init_point;
+    const checkoutUrl = data.init_point;
 
     console.log(`Modo: ${isTest ? "TESTE" : "PRODUÇÃO"} | URL: ${checkoutUrl}`);
 
