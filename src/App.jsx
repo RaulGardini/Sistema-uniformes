@@ -146,7 +146,16 @@ input::placeholder{color:${C.muted};}
   .qty-btn{width:28px;height:28px;}
   .qty-num{width:22px;font-size:.82rem;}
   .grupo-bloco{padding:8px 8px;}
-  .tam-grid{gap:4px;}
+  .tam-grid{gap:4px;grid-template-columns:repeat(2,1fr);}
+}
+
+@media(max-width:460px){
+  .peca-foto{width:70px;min-height:70px;}
+  .peca-info{padding:10px 12px;}
+  .qty-btn{width:28px;height:28px;}
+  .qty-num{width:22px;font-size:.82rem;}
+  .grupo-bloco{padding:8px 8px;}
+  .tam-grid{gap:4px;grid-template-columns:repeat(1,1fr);}
 }
 
 /* ── PAGAMENTO ── */
