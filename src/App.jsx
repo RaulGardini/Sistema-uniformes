@@ -639,7 +639,7 @@ function AdminLogin({ onEntrar }) {
         body:    JSON.stringify({ senha }),
       });
       const data = await res.json();
-      if (data.ok) { onEntrar(); return; }
+      if (data.ok) { onEntrar(senha); return; }
     } catch {}
     setErro(true); setSenha(""); setLoading(false);
   }
@@ -661,7 +661,7 @@ function AdminLogin({ onEntrar }) {
 }
 
 /* ── ADMIN ── */
-function AdminPage({ onSair }) {
+function AdminPage({ onSair, adminSenha }) {
   const [aba, setAba]             = useState("resumo");
   const [pedidos, setPedidos]     = useState(null);
   const [filtro, setFiltro]       = useState("Todos");
@@ -691,8 +691,12 @@ function AdminPage({ onSair }) {
   async function confirmarDelete() {
     if (!modalId) return;
     try {
-      const { error } = await supabase.from("pedidos").delete().eq("id", modalId);
-      if (error) throw error;
+      const res = await fetch("/.netlify/functions/deletar-pedido", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ pedidoId: modalId, senha: adminSenha }),
+      });
+      if (!res.ok) throw new Error("Erro ao deletar");
       setModalId(null); carregar();
     } catch (e) {
       console.error(e); setErroAdmin("Erro ao remover pedido."); setModalId(null);
@@ -879,6 +883,7 @@ function AdminPage({ onSair }) {
 export default function App() {
   const [tela, setTela]           = useState("aluna");
   const [adminAuth, setAdminAuth] = useState(false);
+  const [adminSenha, setAdminSenha] = useState("");
 
   // Detecta retorno do Mercado Pago usando os parâmetros reais do MP
   const statusRetorno = detectarStatusRetorno();
@@ -902,8 +907,8 @@ export default function App() {
         </div>
 
         {tela === "aluna"       && <AlunaPage statusRetorno={statusRetorno} />}
-        {tela === "admin-login" && <AdminLogin onEntrar={() => { setAdminAuth(true); setTela("admin"); }} />}
-        {tela === "admin"       && <AdminPage onSair={() => { setAdminAuth(false); setTela("aluna"); }} />}
+        {tela === "admin-login" && <AdminLogin onEntrar={(s) => { setAdminAuth(true); setAdminSenha(s); setTela("admin"); }} />}
+        {tela === "admin"       && <AdminPage onSair={() => { setAdminAuth(false); setAdminSenha(""); setTela("aluna"); }} adminSenha={adminSenha} />}
       </div>
     </>
   );
