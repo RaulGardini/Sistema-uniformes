@@ -6,11 +6,11 @@ import imgRegata from "./img/regata.png";
 import imgCalcaMoleton from "./img/calcamoleton.png";
 
 const PECAS_CONFIG = [
-  { img: imgBlusa, nome: "Blusa",         preco: 58.00 },
-  { img: imgShort, nome: "Regata",        preco: 29.00 },
-  { img: imgRegata, nome: "Short",         preco: 69.00 },
-  { img: imgCalcaMoleton, nome: "Calça Moletom", preco: 89.00 },
-  { img: imgCalcaMoleton, nome: "Blusa Moletom", preco: 99.00 },
+  { img: imgBlusa, nome: "Blusa",         preco: 58.57 },
+  { img: imgRegata, nome: "Regata",        preco: 29.29 },
+  { img: imgShort, nome: "Short",         preco: 69.68 },
+  { img: imgCalcaMoleton, nome: "Calça Moletom", preco: 89.88 },
+  { img: imgCalcaMoleton, nome: "Blusa Moletom", preco: 99.98 },
 ];
 const NOMES_PECAS = PECAS_CONFIG.map(p => p.nome);
 const GRUPOS      = [
@@ -22,13 +22,6 @@ const ADMIN_SENHA  = "danca2025";
 
 const fmt  = v => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const fmt2 = v => parseFloat(v.toFixed(2));
-
-const STATUS_LABEL = {
-  pago:        { txt: "Pago ✓",      cor: "#6ee7b7" },
-  pendente:    { txt: "Pendente ⏳",  cor: "#fbbf24" },
-  falhou:      { txt: "Falhou ✗",    cor: "#f87171" },
-  reembolsado: { txt: "Reembolsado", cor: "#94a3b8" },
-};
 
 const FORMA_LABEL = {
   pix:      "Pix",
@@ -95,25 +88,25 @@ input::placeholder{color:${C.muted};}
 .peca-grid{display:flex;flex-direction:column;gap:14px;}
 .peca-row{background:${C.bg};border:1.5px solid ${C.border};border-radius:14px;overflow:hidden;transition:border-color .2s,box-shadow .2s;}
 .peca-row.ativa{border-color:${C.accentD};box-shadow:0 0 0 1px ${C.accentD},inset 0 0 24px ${C.glow};}
-.peca-inner{display:flex;align-items:stretch;}
+.peca-inner{display:flex;align-items:stretch;min-width:0;}
 .peca-foto{width:94px;min-height:94px;flex-shrink:0;background:${C.surface};
   display:flex;align-items:center;justify-content:center;font-size:2.2rem;position:relative;overflow:hidden;}
 .peca-foto img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;}
-.peca-info{flex:1;padding:14px 16px;}
-.peca-nome-row{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:3px;}
+.peca-info{flex:1;padding:14px 16px;min-width:0;overflow:hidden;}
+.peca-nome-row{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:3px;flex-wrap:wrap;}
 .peca-nome{font-size:.97rem;font-weight:600;}
-.peca-preco{font-family:'Cormorant Garamond',serif;font-size:1.15rem;color:${C.gold};font-weight:600;}
+.peca-preco{font-family:'arial',serif;font-size:1.15rem;color:${C.gold};font-weight:600;}
 .toggle-btn{background:none;border:1.5px solid ${C.border};border-radius:8px;color:${C.muted};
   cursor:pointer;font-size:.75rem;padding:4px 11px;transition:all .2s;font-family:'DM Sans',sans-serif;flex-shrink:0;}
 .toggle-btn:hover{border-color:${C.accent};color:${C.accent};}
 .toggle-btn.on{background:${C.glow};border-color:${C.accent};color:${C.accent};}
 
-.grupos-wrap{display:flex;flex-direction:column;gap:10px;margin-top:12px;}
-.grupo-bloco{background:rgba(0,0,0,.2);border:1px solid ${C.border};border-radius:10px;padding:10px 12px;}
+.grupos-wrap{display:flex;flex-direction:column;gap:10px;margin-top:12px;width:100%;}
+.grupo-bloco{background:rgba(0,0,0,.2);border:1px solid ${C.border};border-radius:10px;padding:10px 12px;width:100%;overflow:hidden;}
 .grupo-label{font-size:.68rem;letter-spacing:2px;text-transform:uppercase;color:${C.muted};margin-bottom:8px;font-weight:600;}
 .grupo-label.adulto{color:#a78bfa;}
 .grupo-label.infantil{color:#67e8f9;}
-.tam-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.tam-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;}
 .tam-item{display:flex;flex-direction:column;align-items:center;gap:5px;}
 .tam-label{font-size:.73rem;color:${C.muted};font-weight:500;}
 .qty-control{display:flex;align-items:center;gap:3px;}
@@ -129,7 +122,16 @@ input::placeholder{color:${C.muted};}
   padding:14px 20px;display:flex;align-items:center;justify-content:space-between;
   box-shadow:0 8px 32px rgba(0,0,0,.5);margin-top:16px;}
 .total-label{font-size:.78rem;color:${C.muted};}
-.total-val{font-family:'Cormorant Garamond',serif;font-size:1.5rem;color:${C.gold};font-weight:700;}
+.total-val{font-family:'arial',serif;font-size:1.5rem;color:${C.gold};font-weight:700;}
+
+@media(max-width:480px){
+  .peca-foto{width:70px;min-height:70px;}
+  .peca-info{padding:10px 12px;}
+  .qty-btn{width:28px;height:28px;}
+  .qty-num{width:22px;font-size:.82rem;}
+  .grupo-bloco{padding:8px 8px;}
+  .tam-grid{gap:4px;}
+}
 
 /* ── PAGAMENTO ── */
 .pgto-resumo{background:${C.bg};border:1px solid ${C.border};border-radius:14px;padding:16px 20px;margin-bottom:20px;}
@@ -137,7 +139,7 @@ input::placeholder{color:${C.muted};}
 .pgto-resumo-tags{display:flex;flex-wrap:wrap;gap:6px;}
 .pgto-total-row{display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:12px;border-top:1px solid ${C.border};}
 .pgto-total-label{font-size:.85rem;color:${C.muted};}
-.pgto-total-val{font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:${C.gold};font-weight:700;}
+.pgto-total-val{font-family:'arial',serif;font-size:1.4rem;color:${C.gold};font-weight:700;}
 
 .pgto-opcoes{display:flex;flex-direction:column;gap:12px;margin-bottom:20px;}
 .pgto-opcao{background:${C.bg};border:2px solid ${C.border};border-radius:14px;
@@ -149,7 +151,7 @@ input::placeholder{color:${C.muted};}
 .pgto-info{flex:1;}
 .pgto-nome{font-weight:600;font-size:.97rem;margin-bottom:2px;}
 .pgto-desc{font-size:.78rem;color:${C.muted};}
-.pgto-valor{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:700;text-align:right;}
+.pgto-valor{font-family:'arial',serif;font-size:1.2rem;font-weight:700;text-align:right;}
 .pgto-valor.pix-val{color:${C.pix};}
 .pgto-valor.cartao-val{color:${C.accent};}
 .pgto-acrescimo{font-size:.7rem;color:${C.muted};text-align:right;margin-top:2px;}
@@ -174,10 +176,8 @@ input::placeholder{color:${C.muted};}
 .suc-icon{font-size:3.5rem;margin-bottom:14px;animation:pop .4s cubic-bezier(.175,.885,.32,1.275);}
 @keyframes pop{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
 .suc-title{font-family:'Cormorant Garamond',serif;font-size:1.7rem;color:${C.success};margin-bottom:8px;}
-.suc-title.pendente{color:#fbbf24;}
 .suc-title.falhou{color:${C.danger};}
 .suc-sub{color:${C.muted};font-size:.9rem;line-height:1.6;}
-.suc-total{font-family:'Cormorant Garamond',serif;font-size:1.2rem;color:${C.gold};margin:14px 0;}
 
 /* ── ADMIN ── */
 .stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;}
@@ -200,16 +200,13 @@ input::placeholder{color:${C.muted};}
   cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.78rem;padding:5px 12px;transition:all .2s;}
 .ptab.active{background:${C.glow};border-color:${C.accent};color:${C.accent};}
 
-.pedido-item{background:${C.bg};border:1px solid ${C.border};border-radius:12px;padding:15px 18px;margin-bottom:9px;}
-.pedido-item.pago{border-color:rgba(110,231,183,.25);}
-.pedido-item.falhou{border-color:rgba(248,113,113,.2);}
+.pedido-item{background:${C.bg};border:1px solid rgba(110,231,183,.25);border-radius:12px;padding:15px 18px;margin-bottom:9px;}
 .pedido-nome{font-weight:600;margin-bottom:8px;font-size:.97rem;}
 .pedido-tags{display:flex;flex-wrap:wrap;gap:5px;}
 .tag{background:${C.glow};border:1px solid ${C.accentD};border-radius:6px;font-size:.73rem;color:${C.accent};padding:3px 9px;}
 .pedido-footer{display:flex;align-items:center;justify-content:space-between;margin-top:12px;gap:10px;flex-wrap:wrap;}
 .pedido-hora{font-size:.72rem;color:${C.muted};}
 .pedido-total-lbl{font-family:'Cormorant Garamond',serif;font-size:.97rem;color:${C.gold};}
-.status-badge{font-size:.72rem;padding:3px 10px;border-radius:20px;font-weight:600;border:1px solid;}
 
 .del-btn{background:none;border:1.5px solid ${C.border};border-radius:8px;color:${C.muted};
   cursor:pointer;font-size:.78rem;padding:5px 12px;transition:all .2s;display:flex;align-items:center;
@@ -297,33 +294,19 @@ function QtyControl({ value, onChange }) {
 
 /* ── TELA DE RETORNO DO MERCADO PAGO ── */
 function TelaRetorno({ status, onVoltar }) {
-  const configs = {
-    aprovado: {
-      icon:  "🎉",
-      title: "Pagamento aprovado!",
-      cls:   "",
-      sub:   "Seu pedido foi confirmado e o pagamento foi processado com sucesso. Obrigada!",
-    },
-    pendente: {
-      icon:  "⏳",
-      title: "Pagamento em análise",
-      cls:   "pendente",
-      sub:   "Seu pedido foi recebido. Assim que o pagamento for confirmado, seu status será atualizado.",
-    },
-    falhou: {
-      icon:  "😕",
-      title: "Pagamento não concluído",
-      cls:   "falhou",
-      sub:   "O pagamento não foi processado. Você pode tentar novamente com outro método de pagamento.",
-    },
-  };
-  const c = configs[status] || configs.falhou;
+  const isAprovado = status === "aprovado";
   return (
     <div className="card">
       <div className="success-box">
-        <div className="suc-icon">{c.icon}</div>
-        <div className={`suc-title ${c.cls}`}>{c.title}</div>
-        <div className="suc-sub">{c.sub}</div>
+        <div className="suc-icon">{isAprovado ? "🎉" : "😕"}</div>
+        <div className={`suc-title ${isAprovado ? "" : "falhou"}`}>
+          {isAprovado ? "Pagamento confirmado!" : "Pagamento não concluído"}
+        </div>
+        <div className="suc-sub">
+          {isAprovado
+            ? "Seu pedido e pagamento foram confirmados. Retire o seu fardamento na loja TP. Obrigado!"
+            : "O pagamento não foi processado. Você pode tentar novamente."}
+        </div>
         <br />
         <button className="btn-ghost" onClick={onVoltar}>← Voltar ao início</button>
       </div>
@@ -337,13 +320,13 @@ function TelaPagamento({ nome, pecas, onVoltar }) {
   const [processando, setProcessando]           = useState(false);
   const [erro, setErro]                         = useState("");
 
-  const totalBase = calcTotal(pecas);
-  const total2x   = fmt2(totalBase * 1.06);
+  const totalBase   = calcTotal(pecas);
+  const totalCartao = fmt2(totalBase * 1.05);
 
   const opcoes = [
     {
       id:      "pix",
-      icone:   "💚",
+      icone:   "❖",
       nome:    "Pix",
       desc:    "Aprovação imediata · Sem acréscimo",
       valor:   totalBase,
@@ -354,17 +337,18 @@ function TelaPagamento({ nome, pecas, onVoltar }) {
       id:      "cartao_1x",
       icone:   "💳",
       nome:    "Cartão de crédito — 1×",
-      desc:    "À vista no cartão",
-      valor:   totalBase,
+      desc:    "+5% de acréscimo sobre o total",
+      valor:   totalCartao,
       cls:     "cartao",
       valCls:  "cartao-val",
+      acrescimo: true,
     },
     {
       id:      "cartao_2x",
       icone:   "💳",
       nome:    "Cartão de crédito — 2×",
-      desc:    "+6% de acréscimo sobre o total",
-      valor:   total2x,
+      desc:    "+5% de acréscimo sobre o total",
+      valor:   totalCartao,
       cls:     "cartao",
       valCls:  "cartao-val",
       acrescimo: true,
@@ -379,7 +363,6 @@ function TelaPagamento({ nome, pecas, onVoltar }) {
     try {
       const opcao = opcoes.find(o => o.id === formaSelecionada);
 
-      // 1. Salva o pedido no Supabase com status "pendente"
       const { data: pedidoSalvo, error: errSalvar } = await supabase
         .from("pedidos")
         .insert([{
@@ -393,7 +376,6 @@ function TelaPagamento({ nome, pecas, onVoltar }) {
 
       if (errSalvar) throw errSalvar;
 
-      // 2. Cria preferência no Mercado Pago via Netlify Function
       const response = await fetch("/.netlify/functions/criar-pagamento", {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
@@ -411,7 +393,6 @@ function TelaPagamento({ nome, pecas, onVoltar }) {
         throw new Error(data.error || "Erro ao gerar link de pagamento.");
       }
 
-      // 3. Redireciona para o checkout do Mercado Pago
       window.location.href = data.checkout_url;
 
     } catch (e) {
@@ -427,7 +408,6 @@ function TelaPagamento({ nome, pecas, onVoltar }) {
     <div className="card">
       <div className="card-title">Forma de pagamento</div>
 
-      {/* Resumo do pedido */}
       <div className="pgto-resumo">
         <div className="pgto-resumo-title">Resumo do pedido</div>
         <div className="pgto-resumo-tags">
@@ -439,7 +419,6 @@ function TelaPagamento({ nome, pecas, onVoltar }) {
         </div>
       </div>
 
-      {/* Opções de pagamento */}
       <div className="pgto-opcoes">
         {opcoes.map(op => (
           <div
@@ -530,7 +509,7 @@ function AlunaPage({ statusRetorno }) {
       </label>
       <input
         type="text"
-        placeholder="Ex: Maria da Silva"
+        placeholder="Ex: Raul Passos Gardini"
         value={nome}
         autoFocus
         onChange={e => setNome(e.target.value)}
@@ -653,7 +632,6 @@ function AdminPage({ onSair }) {
   const [aba, setAba]             = useState("resumo");
   const [pedidos, setPedidos]     = useState(null);
   const [filtro, setFiltro]       = useState("Todos");
-  const [filtroStatus, setFiltroStatus] = useState("Todos");
   const [loading, setLoading]     = useState(true);
   const [modalId, setModalId]     = useState(null);
   const [erroAdmin, setErroAdmin] = useState("");
@@ -662,7 +640,10 @@ function AdminPage({ onSair }) {
     setLoading(true); setErroAdmin("");
     try {
       const { data, error } = await supabase
-        .from("pedidos").select("*").order("hora", { ascending: false });
+        .from("pedidos")
+        .select("*")
+        .eq("pagamento_status", "pago")
+        .order("hora", { ascending: false });
       if (error) throw error;
       setPedidos(data || []);
     } catch (e) {
@@ -686,13 +667,11 @@ function AdminPage({ onSair }) {
 
   useEffect(() => { carregar(); }, []);
 
-  // totais (apenas pedidos pagos)
-  const pedidosPagos = pedidos?.filter(p => p.pagamento_status === "pago") || [];
   const totais = Object.fromEntries(
     NOMES_PECAS.map(p => [p, Object.fromEntries(TODAS_CHAVES.map(k => [k, 0]))])
   );
   let receitaTotal = 0;
-  pedidosPagos.forEach(p => {
+  (pedidos || []).forEach(p => {
     PECAS_CONFIG.forEach(({ nome, preco }) => {
       TODAS_CHAVES.forEach(chave => {
         const q = p.pecas?.[nome]?.tamanhos?.[chave] || 0;
@@ -706,7 +685,6 @@ function AdminPage({ onSair }) {
   const pecasFiltradas = filtro === "Todos" ? NOMES_PECAS : [filtro];
 
   let pedidosFiltrados = pedidos || [];
-  if (filtroStatus !== "Todos") pedidosFiltrados = pedidosFiltrados.filter(p => p.pagamento_status === filtroStatus);
   if (filtro !== "Todos") pedidosFiltrados = pedidosFiltrados.filter(p =>
     TODAS_CHAVES.some(k => (p.pecas?.[filtro]?.tamanhos?.[k] || 0) > 0)
   );
@@ -735,24 +713,13 @@ function AdminPage({ onSair }) {
 
       {loading && <div className="empty-state"><span className="em">⏳</span>Carregando...</div>}
 
-      {/* ABA RESUMO */}
       {!loading && aba === "resumo" && (
         <div className="card">
           <div className="card-title">Resumo geral</div>
           <div className="stat-grid">
             <div className="stat-card hl">
               <div className="stat-num">{pedidos?.length}</div>
-              <div className="stat-lbl">Total pedidos</div>
-            </div>
-            <div className="stat-card" style={{ borderColor: "rgba(110,231,183,.3)" }}>
-              <div className="stat-num" style={{ color: C.success }}>{pedidosPagos.length}</div>
-              <div className="stat-lbl">Pagos ✓</div>
-            </div>
-            <div className="stat-card" style={{ borderColor: "rgba(251,191,36,.3)" }}>
-              <div className="stat-num" style={{ color: "#fbbf24" }}>
-                {pedidos?.filter(p => p.pagamento_status === "pendente").length}
-              </div>
-              <div className="stat-lbl">Pendentes</div>
+              <div className="stat-lbl">Pedidos confirmados</div>
             </div>
             {PECAS_CONFIG.map(({ nome, preco }) => {
               const qtd = Object.values(totais[nome]).reduce((s, v) => s + v, 0);
@@ -766,13 +733,13 @@ function AdminPage({ onSair }) {
             })}
             <div className="stat-card hl">
               <div className="stat-num" style={{ fontSize: "1.2rem" }}>{fmt(receitaTotal)}</div>
-              <div className="stat-lbl">Receita (pagos)</div>
+              <div className="stat-lbl">Receita total</div>
             </div>
           </div>
 
           <div style={{ marginTop: 24 }}>
             <div style={{ fontSize: ".7rem", letterSpacing: "2px", textTransform: "uppercase", color: C.muted, marginBottom: 12 }}>
-              Quantidade por tamanho (pedidos pagos)
+              Quantidade por tamanho
             </div>
             <div className="ptab-row">
               {["Todos", ...NOMES_PECAS].map(p => (
@@ -814,33 +781,21 @@ function AdminPage({ onSair }) {
         </div>
       )}
 
-      {/* ABA PEDIDOS */}
       {!loading && aba === "pedidos" && (
         <div className="card">
-          <div className="card-title">Pedidos ({pedidosFiltrados?.length || 0})</div>
-
-          {/* Filtro por status */}
-          <div className="ptab-row">
-            {["Todos", "pago", "pendente", "falhou"].map(s => (
-              <button key={s} className={`ptab ${filtroStatus === s ? "active" : ""}`} onClick={() => setFiltroStatus(s)}>
-                {s === "Todos" ? "Todos" : STATUS_LABEL[s]?.txt || s}
-              </button>
-            ))}
-          </div>
+          <div className="card-title">Pedidos confirmados ({pedidosFiltrados?.length || 0})</div>
 
           {pedidosFiltrados?.length === 0
-            ? <div className="empty-state"><span className="em">📋</span>Nenhum pedido encontrado.</div>
-            : pedidosFiltrados.map(p => {
-              const st = STATUS_LABEL[p.pagamento_status] || STATUS_LABEL.pendente;
-              return (
-                <div key={p.id} className={`pedido-item ${p.pagamento_status}`}>
+            ? <div className="empty-state"><span className="em">📋</span>Nenhum pedido confirmado.</div>
+            : pedidosFiltrados.map(p => (
+                <div key={p.id} className="pedido-item">
                   <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 8 }}>
                     <div className="pedido-nome">{p.nome}</div>
                     <span
                       className="status-badge"
-                      style={{ color: st.cor, borderColor: st.cor, background: `${st.cor}18` }}
+                      style={{ color: C.success, borderColor: C.success, background: `${C.success}18`, fontSize: ".72rem", padding: "3px 10px", borderRadius: 20, fontWeight: 600, border: "1px solid" }}
                     >
-                      {st.txt}
+                      Confirmado ✓
                     </span>
                   </div>
                   <div className="pedido-tags">
@@ -857,7 +812,7 @@ function AdminPage({ onSair }) {
                       <div className="pedido-total-lbl">
                         {fmt(p.valor_pago || calcTotal(p.pecas))}
                         {p.forma_pagamento && (
-                          <span style={{ fontSize: ".72rem", color: C.muted, marginLeft: 6 }}>
+                          <span style={{ fontSize: ".92rem", color: C.muted, marginLeft: 6 }}>
                             via {FORMA_LABEL[p.forma_pagamento] || p.forma_pagamento}
                           </span>
                         )}
@@ -868,8 +823,7 @@ function AdminPage({ onSair }) {
                     </button>
                   </div>
                 </div>
-              );
-            })
+              ))
           }
         </div>
       )}
@@ -882,9 +836,8 @@ export default function App() {
   const [tela, setTela]           = useState("aluna");
   const [adminAuth, setAdminAuth] = useState(false);
 
-  // Detecta retorno do Mercado Pago pela URL
   const params        = new URLSearchParams(window.location.search);
-  const statusRetorno = params.get("status"); // aprovado | pendente | falhou
+  const statusRetorno = params.get("status");
 
   return (
     <>
@@ -892,7 +845,7 @@ export default function App() {
       <div className="grain" />
       <div className="wrap">
         <div className="logo">
-          <div className="logo-title">Studio Fardamento</div>
+          <div className="logo-title">Fardamento TP 2026</div>
           <div className="logo-sub">
             {tela === "aluna" ? "Escolha seu uniforme" : "Painel da administração"}
           </div>
