@@ -522,7 +522,7 @@ function AlunaPage({ statusRetorno }) {
 
   if (step === "pagamento") return (
     <TelaPagamento
-      nome={nome}
+      nome={nomeCompleto}
       pecas={pecas}
       onVoltar={() => setStep("escolha")}
     />
