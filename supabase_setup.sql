@@ -28,8 +28,7 @@ create policy "Leitura pública de pedidos"
 create policy "Inserção pública de pedidos"
   on pedidos for insert with check (true);
 
-create policy "Deleção pública de pedidos"
-  on pedidos for delete using (true);
+-- Deleção feita apenas via Netlify Function (deletar-pedido) com service_role key
 
 -- 5. Políticas de acesso público para configurações
 create policy "Leitura pública de configurações"
