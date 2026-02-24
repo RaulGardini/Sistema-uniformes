@@ -18,7 +18,6 @@ const GRUPOS      = [
   { label: "Infantil", tamanhos: ["P", "M", "G"] },
 ];
 const TODAS_CHAVES = GRUPOS.flatMap(g => g.tamanhos.map(t => `${g.label} ${t}`));
-const ADMIN_SENHA  = "danca2025";
 
 const fmt  = v => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const fmt2 = v => parseFloat(v.toFixed(2));
@@ -406,7 +405,6 @@ function TelaPagamento({ nome, pecas, onVoltar }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           pedidoId:  pedidoSalvo.id,
-          valor:     opcao.valor,
           forma:     formaSelecionada,
           nomeAluna: nome.trim(),
         }),
@@ -628,12 +626,22 @@ function AlunaPage({ statusRetorno }) {
 
 /* ── ADMIN LOGIN ── */
 function AdminLogin({ onEntrar }) {
-  const [senha, setSenha] = useState("");
-  const [erro, setErro]   = useState(false);
+  const [senha, setSenha]     = useState("");
+  const [erro, setErro]       = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  function tentar() {
-    if (senha === ADMIN_SENHA) onEntrar();
-    else { setErro(true); setSenha(""); }
+  async function tentar() {
+    setLoading(true);
+    try {
+      const res  = await fetch("/.netlify/functions/admin-auth", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ senha }),
+      });
+      const data = await res.json();
+      if (data.ok) { onEntrar(); return; }
+    } catch {}
+    setErro(true); setSenha(""); setLoading(false);
   }
 
   return (
@@ -647,7 +655,7 @@ function AdminLogin({ onEntrar }) {
       />
       {erro && <div className="alert">Senha incorreta.</div>}
       <br /><br />
-      <button className="btn-primary" onClick={tentar}>Entrar</button>
+      <button className="btn-primary" onClick={tentar} disabled={loading}>{loading ? "Verificando..." : "Entrar"}</button>
     </div>
   );
 }

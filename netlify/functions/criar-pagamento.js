@@ -1,12 +1,53 @@
+const PRECOS = {
+  "Blusa":         58.57,
+  "Regata":        29.29,
+  "Short":         69.68,
+  "Calça Moletom": 89.88,
+  "Blusa Moletom": 99.98,
+};
+
+function calcTotal(pecas) {
+  let total = 0;
+  for (const [nome, preco] of Object.entries(PRECOS)) {
+    const tamanhos = pecas?.[nome]?.tamanhos || {};
+    for (const qty of Object.values(tamanhos)) {
+      total += (qty || 0) * preco;
+    }
+  }
+  return total;
+}
+
 exports.handler = async (event) => {
   if (event.httpMethod !== "POST") {
     return { statusCode: 405, body: "Method Not Allowed" };
   }
 
   try {
-    const { pedidoId, valor, forma, nomeAluna } = JSON.parse(event.body);
+    const { pedidoId, forma, nomeAluna } = JSON.parse(event.body);
 
-    const valorFinal = parseFloat(Number(valor).toFixed(2));
+    // Busca o pedido no Supabase para calcular o valor no servidor
+    const supabaseUrl = process.env.VITE_SUPABASE_URL;
+    const supabaseKey = process.env.VITE_SUPABASE_KEY;
+
+    const pedidoRes = await fetch(
+      `${supabaseUrl}/rest/v1/pedidos?id=eq.${pedidoId}&select=pecas`,
+      {
+        headers: {
+          apikey:        supabaseKey,
+          Authorization: `Bearer ${supabaseKey}`,
+        },
+      }
+    );
+
+    if (!pedidoRes.ok) throw new Error("Erro ao buscar pedido");
+
+    const [pedido] = await pedidoRes.json();
+    if (!pedido) throw new Error("Pedido não encontrado");
+
+    const totalBase  = calcTotal(pedido.pecas);
+    if (totalBase <= 0) throw new Error("Pedido sem itens");
+
+    const totalFinal = parseFloat((forma === "pix" ? totalBase : totalBase * 1.05).toFixed(2));
     const siteUrl    = process.env.URL || "http://localhost:8888";
 
     let paymentMethods = {};
@@ -36,7 +77,7 @@ exports.handler = async (event) => {
       items: [{
         title:       "Fardamento TP 2026",
         quantity:    1,
-        unit_price:  valorFinal,
+        unit_price:  totalFinal,
         currency_id: "BRL",
       }],
       payer:              { name: nomeAluna },
@@ -72,7 +113,7 @@ exports.handler = async (event) => {
     }
 
     const checkoutUrl = data.init_point;
-    console.log(`Preferência criada | Pedido: ${pedidoId} | Valor: ${valorFinal}`);
+    console.log(`Preferência criada | Pedido: ${pedidoId} | Valor: ${totalFinal}`);
 
     return {
       statusCode: 200,
