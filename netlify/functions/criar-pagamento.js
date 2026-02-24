@@ -6,32 +6,30 @@ exports.handler = async (event) => {
   try {
     const { pedidoId, valor, forma, nomeAluna } = JSON.parse(event.body);
 
-    // Aplica 6% de acréscimo se parcelado em 2x
     const valorFinal = forma === "cartao_2x"
       ? parseFloat((valor * 1.06).toFixed(2))
-      : parseFloat(valor.toFixed(2));
+      : parseFloat(Number(valor).toFixed(2));
 
     const siteUrl = process.env.URL || "http://localhost:8888";
-    const isTest  = process.env.MP_ACCESS_TOKEN?.startsWith("TEST-");
 
     // Configura métodos de pagamento por forma escolhida
     let paymentMethods = {};
     if (forma === "pix") {
       paymentMethods = {
         excluded_payment_types: [
-          { id: "credit_card" },
-          { id: "debit_card"  },
-          { id: "ticket"      },
-          { id: "prepaid_card"},
-          { id: "atm"         },
+          { id: "credit_card"  },
+          { id: "debit_card"   },
+          { id: "ticket"       },
+          { id: "prepaid_card" },
+          { id: "atm"          },
         ],
       };
     } else {
       paymentMethods = {
         excluded_payment_types: [
-          { id: "ticket"         },
-          { id: "bank_transfer"  },
-          { id: "atm"            },
+          { id: "ticket"        },
+          { id: "bank_transfer" },
+          { id: "atm"           },
         ],
         installments:         forma === "cartao_2x" ? 2 : 1,
         default_installments: forma === "cartao_2x" ? 2 : 1,
@@ -41,27 +39,29 @@ exports.handler = async (event) => {
     const preference = {
       items: [
         {
-          title:      "Fardamento Studio de Dança",
-          quantity:   1,
-          unit_price: valorFinal,
+          title:       "Fardamento Studio de Dança",
+          quantity:    1,
+          unit_price:  valorFinal,
           currency_id: "BRL",
         },
       ],
-      payer: { name: nomeAluna },
+      payer:              { name: nomeAluna },
       external_reference: pedidoId,
       back_urls: {
         success: `${siteUrl}/?status=aprovado&pedido_id=${pedidoId}`,
         failure: `${siteUrl}/?status=falhou&pedido_id=${pedidoId}`,
         pending: `${siteUrl}/?status=pendente&pedido_id=${pedidoId}`,
       },
-      auto_return: "approved",
-      notification_url: `${siteUrl}/.netlify/functions/webhook-pagamento`,
-      payment_methods: paymentMethods,
+      auto_return:          "approved",
+      notification_url:     `${siteUrl}/.netlify/functions/webhook-pagamento`,
+      payment_methods:      paymentMethods,
       statement_descriptor: "STUDIO DANCA",
     };
 
+    console.log("Criando preferência MP com token:", process.env.MP_ACCESS_TOKEN?.slice(0, 20) + "...");
+
     const response = await fetch("https://api.mercadopago.com/checkout/preferences", {
-      method: "POST",
+      method:  "POST",
       headers: {
         Authorization:  `Bearer ${process.env.MP_ACCESS_TOKEN}`,
         "Content-Type": "application/json",
@@ -72,26 +72,28 @@ exports.handler = async (event) => {
     const data = await response.json();
 
     if (!response.ok) {
-      console.error("MP Error:", data);
+      console.error("MP Error:", JSON.stringify(data));
       return {
         statusCode: 500,
-        body: JSON.stringify({ error: "Erro ao criar preferência no Mercado Pago", detail: data }),
+        body: JSON.stringify({ error: "Erro MP", detail: data }),
       };
     }
 
-    // Em modo de teste usa sandbox_init_point, em produção usa init_point
-    const checkoutUrl = isTest ? data.sandbox_init_point : data.init_point;
+    // Tenta sandbox_init_point primeiro (credenciais de teste), senão usa init_point
+    const checkoutUrl = data.sandbox_init_point || data.init_point;
+
+    console.log("Preferência criada:", data.id, "URL:", checkoutUrl);
 
     return {
       statusCode: 200,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ checkout_url: checkoutUrl, preference_id: data.id }),
+      headers:    { "Content-Type": "application/json" },
+      body:       JSON.stringify({ checkout_url: checkoutUrl, preference_id: data.id }),
     };
   } catch (err) {
-    console.error("Function error:", err);
+    console.error("Function error:", err.message);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: err.message }),
+      body:       JSON.stringify({ error: err.message }),
     };
   }
 };
