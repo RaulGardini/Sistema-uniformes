@@ -315,13 +315,13 @@ function TelaRetorno({ status, onVoltar }) {
     <div className="card">
       <div className="success-box">
         <div className="suc-icon">{isFail ? "😕" : "🎉"}</div>
-        <div className={`suc-title ${isFail ? "falhou" : ""}`}>
-          {isFail ? "Pagamento não confirmado!" : "Pagamento confirmado!"}
+        <div className={`suc-title ${isFail ? "falhou" : "Quase lá!"}`}>
+          {isFail ? "Pagamento não confirmado!" : "Se você realizou o pix, ira aparece uma confirmação no seu Email em instantes!"}
         </div>
         <div className="suc-sub">
           {isFail
             ? "O pagamento não foi processado. Você pode tentar novamente."
-            : "Seu pedido e pagamento foram confirmados. Retire o seu fardamento na loja TP. Obrigado!"}
+            : "Assim que a confirmação do pagamento aparecer no seu Email, Fique atento no WhatsApp, informaremos em breve a data para voce retirar o seu fardamento na loja TP. Obrigado!"}
         </div>
         <br />
         <button className="btn-ghost" onClick={onVoltar}>← Voltar ao início</button>
