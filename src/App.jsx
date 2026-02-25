@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "./supabase";
 import imgBlusa from "./img/bluda.png";
 import imgShort from "./img/short.png";
@@ -330,12 +330,12 @@ function TelaRetorno({ status, onVoltar }) {
       <div className="success-box">
         <div className="suc-icon">{isFail ? "😕" : "🎉"}</div>
         <div className={`suc-title ${isFail ? "falhou" : "Quase lá!"}`}>
-          {isFail ? "Pagamento não confirmado!" : "Se você realizou o pix, ira aparece uma confirmação no seu Email em instantes!"}
+          {isFail ? "Pagamento não confirmado!" : "Se você realizou o pix, irá aparecer uma confirmação no seu Email em instantes!"}
         </div>
         <div className="suc-sub">
           {isFail
             ? "O pagamento não foi processado. Você pode tentar novamente."
-            : "Assim que a confirmação do pagamento aparecer no seu Email, Fique atento no WhatsApp, informaremos em breve a data para voce retirar o seu fardamento na loja TP. Obrigado!"}
+            : "Assim que a confirmação do pagamento aparecer no seu Email, Fique atento no WhatsApp, informaremos em breve a data para você retirar o seu fardamento na loja TP. Obrigado!"}
         </div>
         <br />
         <button className="btn-ghost" onClick={onVoltar}>← Voltar ao início</button>
@@ -349,6 +349,12 @@ function TelaPagamento({ nome, pecas, onVoltar }) {
   const [formaSelecionada, setFormaSelecionada] = useState(null);
   const [processando, setProcessando]           = useState(false);
   const [erro, setErro]                         = useState("");
+  const [mostrarPendente, setMostrarPendente]   = useState(false);
+  const timerRef = useRef(null);
+
+  useEffect(() => () => clearTimeout(timerRef.current), []);
+
+  if (mostrarPendente) return <TelaRetorno status="pendente" onVoltar={onVoltar} />;
 
   const totalBase   = calcTotal(pecas);
   const totalCartao = fmt2(totalBase * 1.05);
@@ -423,6 +429,7 @@ function TelaPagamento({ nome, pecas, onVoltar }) {
       }
 
       sessionStorage.setItem("pagamento_pendente", "true");
+      timerRef.current = setTimeout(() => setMostrarPendente(true), 10000);
       window.location.href = data.checkout_url;
 
     } catch (e) {
