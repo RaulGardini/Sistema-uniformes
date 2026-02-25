@@ -918,9 +918,19 @@ export default function App() {
   const [tela, setTela]           = useState("aluna");
   const [adminAuth, setAdminAuth] = useState(false);
   const [adminSenha, setAdminSenha] = useState("");
+  const [statusRetorno, setStatusRetorno] = useState(() => detectarStatusRetorno());
 
-  // Detecta retorno do Mercado Pago usando os parâmetros reais do MP
-  const statusRetorno = detectarStatusRetorno();
+  // Detecta retorno via bfcache (botão voltar do navegador)
+  useEffect(() => {
+    const handlePageShow = (e) => {
+      if (e.persisted) {
+        const status = detectarStatusRetorno();
+        if (status) setStatusRetorno(status);
+      }
+    };
+    window.addEventListener("pageshow", handlePageShow);
+    return () => window.removeEventListener("pageshow", handlePageShow);
+  }, []);
 
   return (
     <>
