@@ -52,8 +52,15 @@ function detectarStatusRetorno() {
   const status           = params.get("status");
   const paymentId        = params.get("payment_id") || params.get("collection_id");
 
-  if (!collectionStatus && !status && !paymentId) return null;
+  if (!collectionStatus && !status && !paymentId) {
+    if (sessionStorage.getItem("pagamento_pendente")) {
+      sessionStorage.removeItem("pagamento_pendente");
+      return "pendente";
+    }
+    return null;
+  }
 
+  sessionStorage.removeItem("pagamento_pendente");
   const mpStatus = collectionStatus || status;
 
   if (mpStatus === "approved")                             return "aprovado";
@@ -101,7 +108,7 @@ input:focus{border-color:${C.accent};box-shadow:0 0 0 3px ${C.glow};}
 input::placeholder{color:${C.muted};}
 
 .peca-grid{display:flex;flex-direction:column;gap:14px;}
-.peca-row{background:${C.bg};border:1.5px solid ${C.border};border-radius:14px;overflow:hidden;transition:border-color .2s,box-shadow .2s;}
+.peca-row{background:${C.bg};border:1.5px solid ${C.border};border-radius:14px;overflow:hidden;transition:border-color .2s,box-shadow .2s;cursor:pointer;}
 .peca-row.ativa{border-color:${C.accentD};box-shadow:0 0 0 1px ${C.accentD},inset 0 0 24px ${C.glow};}
 .peca-inner{display:flex;align-items:stretch;min-width:0;}
 .peca-foto{width:94px;min-height:94px;flex-shrink:0;background:${C.surface};
@@ -111,18 +118,17 @@ input::placeholder{color:${C.muted};}
 .peca-nome-row{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:3px;flex-wrap:wrap;}
 .peca-nome{font-size:.97rem;font-weight:600;}
 .peca-preco{font-family:'arial',serif;font-size:1.15rem;color:${C.gold};font-weight:600;}
-.toggle-btn{background:none;border:1.5px solid ${C.border};border-radius:8px;color:${C.muted};
-  cursor:pointer;font-size:.75rem;padding:4px 11px;transition:all .2s;font-family:'DM Sans',sans-serif;flex-shrink:0;}
-.toggle-btn:hover{border-color:${C.accent};color:${C.accent};}
-.toggle-btn.on{background:${C.glow};border-color:${C.accent};color:${C.accent};}
+.peca-tags-resumo{display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end;max-width:140px;}
+.peca-tag-mini{background:rgba(168,85,247,0.15);border:1px solid ${C.accentD};border-radius:5px;font-size:.65rem;color:${C.accent};padding:2px 6px;white-space:nowrap;}
 
-.grupos-wrap{display:flex;flex-direction:column;gap:10px;margin-top:12px;width:100%;}
+.grupos-wrap{display:flex;flex-direction:column;gap:10px;width:100%;max-height:0;overflow:hidden;transition:max-height .35s ease,margin-top .35s ease;}
+.peca-row.ativa .grupos-wrap{max-height:600px;margin-top:12px;}
 .grupo-bloco{background:rgba(0,0,0,.2);border:1px solid ${C.border};border-radius:10px;padding:10px 12px;width:100%;overflow:hidden;}
 .grupo-label{font-size:.68rem;letter-spacing:2px;text-transform:uppercase;color:${C.muted};margin-bottom:8px;font-weight:600;}
 .grupo-label.adulto{color:#a78bfa;}
 .grupo-label.infantil{color:#67e8f9;}
 .tam-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;}
-.tam-item{display:flex;flex-direction:column;align-items:center;gap:5px;}
+.tam-item{display:flex;flex-direction:column;align-items:center;gap:5px;border:1px solid ${C.border};border-radius:8px;padding:8px 0;cursor:pointer;transition:all .2s;}
 .tam-label{font-size:.73rem;color:${C.muted};font-weight:500;}
 .qty-control{display:flex;align-items:center;gap:3px;}
 .qty-btn{width:24px;height:24px;border-radius:6px;border:1.5px solid ${C.border};
@@ -416,6 +422,7 @@ function TelaPagamento({ nome, pecas, onVoltar }) {
         throw new Error(data.error || "Erro ao gerar link de pagamento.");
       }
 
+      sessionStorage.setItem("pagamento_pendente", "true");
       window.location.href = data.checkout_url;
 
     } catch (e) {
@@ -503,7 +510,12 @@ function AlunaPage({ statusRetorno }) {
   const totalVal = calcTotal(pecas);
 
   function togglePeca(p) {
-    setPecas(prev => ({ ...prev, [p]: { ...prev[p], ativo: !prev[p].ativo } }));
+    setPecas(prev => {
+      const abrindo = !prev[p].ativo;
+      return Object.fromEntries(
+        NOMES_PECAS.map(n => [n, { ...prev[n], ativo: n === p ? abrindo : false }])
+      );
+    });
   }
   function setQty(peca, chave, val) {
     setPecas(prev => ({
@@ -572,11 +584,11 @@ function AlunaPage({ statusRetorno }) {
       <div className="card">
         <div className="card-title">Escolha o fardamento</div>
         <div className="peca-grid">
-          {PECAS_CONFIG.map(({ nome: pNome, preco, emoji, img }) => (
-            <div key={pNome} className={`peca-row ${pecas[pNome].ativo ? "ativa" : ""}`}>
+          {PECAS_CONFIG.map(({ nome: pNome, preco, img }) => (
+            <div key={pNome} className={`peca-row ${pecas[pNome].ativo ? "ativa" : ""}`} onClick={() => togglePeca(pNome)}>
               <div className="peca-inner">
                 <div className="peca-foto">
-                  {img ? <img src={img} alt={pNome} /> : <span>{emoji}</span>}
+                  <img src={img} alt={pNome} />
                 </div>
                 <div className="peca-info">
                   <div className="peca-nome-row">
@@ -584,36 +596,42 @@ function AlunaPage({ statusRetorno }) {
                       <div className="peca-nome">{pNome}</div>
                       <div className="peca-preco">{fmt(preco)}</div>
                     </div>
-                    <button
-                      className={`toggle-btn ${pecas[pNome].ativo ? "on" : ""}`}
-                      onClick={() => togglePeca(pNome)}
-                    >
-                      {pecas[pNome].ativo ? "✓ Selecionado" : "+ Adicionar"}
-                    </button>
-                  </div>
-                  {pecas[pNome].ativo && (
-                    <div className="grupos-wrap">
-                      {GRUPOS.map(({ label, tamanhos }) => (
-                        <div key={label} className="grupo-bloco">
-                          <div className={`grupo-label ${label.toLowerCase()}`}>{label}</div>
-                          <div className="tam-grid">
-                            {tamanhos.map(t => {
-                              const chave = `${label} ${t}`;
-                              return (
-                                <div key={chave} className="tam-item">
-                                  <span className="tam-label">{t}</span>
-                                  <QtyControl
-                                    value={pecas[pNome].tamanhos[chave] || 0}
-                                    onChange={v => setQty(pNome, chave, v)}
-                                  />
-                                </div>
-                              );
-                            })}
-                          </div>
+                    {(() => {
+                      const itens = TODAS_CHAVES.filter(k => (pecas[pNome].tamanhos[k] || 0) > 0);
+                      if (itens.length === 0) return null;
+                      return (
+                        <div className="peca-tags-resumo">
+                          {itens.map(k => (
+                            <span key={k} className="peca-tag-mini">
+                              {k.replace("Adulto ", "").replace("Infantil ", "Inf ")}
+                              {pecas[pNome].tamanhos[k] > 1 ? ` ×${pecas[pNome].tamanhos[k]}` : ""}
+                            </span>
+                          ))}
                         </div>
-                      ))}
-                    </div>
-                  )}
+                      );
+                    })()}
+                  </div>
+                  <div className="grupos-wrap" onClick={e => e.stopPropagation()}>
+                    {GRUPOS.map(({ label, tamanhos }) => (
+                      <div key={label} className="grupo-bloco">
+                        <div className={`grupo-label ${label.toLowerCase()}`}>{label}</div>
+                        <div className="tam-grid">
+                          {tamanhos.map(t => {
+                            const chave = `${label} ${t}`;
+                            return (
+                              <div key={chave} className="tam-item">
+                                <span className="tam-label">{t}</span>
+                                <QtyControl
+                                  value={pecas[pNome].tamanhos[chave] || 0}
+                                  onChange={v => setQty(pNome, chave, v)}
+                                />
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
