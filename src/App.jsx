@@ -847,7 +847,8 @@ function AdminPage({ onSair, adminSenha }) {
                           <td style={{ textAlign: "left", color: label === "Adulto" ? "#a78bfa" : "#67e8f9", fontWeight: 600, fontSize: ".78rem" }}>
                             {label}
                           </td>
-                          {tamanhos.map(t => {
+                          {["PP", "P", "M", "G"].map(t => {
+                            if (!tamanhos.includes(t)) return <td key={t}><span className="tam-zero">–</span></td>;
                             const v = totais[peca][`${label} ${t}`] || 0;
                             return <td key={t}><span className={v > 0 ? "tam-val" : "tam-zero"}>{v > 0 ? v : "–"}</span></td>;
                           })}
