@@ -1,9 +1,9 @@
 const PRECOS = {
-  "Blusa":         58.57,
-  "Regata":        29.29,
-  "Short":         69.68,
-  "Calça Moletom": 89.88,
-  "Blusa Moletom": 99.98,
+  "Blusa":         60.00,
+  "Regata":        30.00,
+  "Short":         60.00,
+  "Calça Moletom": 90.00,
+  "Blusa Moletom": 90.00,
 };
 
 function calcTotal(pecas) {
