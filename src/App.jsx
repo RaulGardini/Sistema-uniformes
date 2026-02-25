@@ -6,11 +6,11 @@ import imgRegata from "./img/regata.png";
 import imgCalcaMoleton from "./img/calcamoleton.png";
 
 const PECAS_CONFIG = [
-  { img: imgBlusa, nome: "Blusa",         preco: 58.57 },
-  { img: imgRegata, nome: "Regata",        preco: 29.29 },
-  { img: imgShort, nome: "Short",         preco: 69.68 },
-  { img: imgCalcaMoleton, nome: "Calça Moletom", preco: 89.88 },
-  { img: imgCalcaMoleton, nome: "Blusa Moletom", preco: 99.98 },
+  { img: imgBlusa, nome: "Blusa",         preco: 60.00 },
+  { img: imgRegata, nome: "Regata",        preco: 30.00 },
+  { img: imgShort, nome: "Short",         preco: 60.00 },
+  { img: imgCalcaMoleton, nome: "Calça Moletom", preco: 90.00 },
+  { img: imgCalcaMoleton, nome: "Blusa Moletom", preco: 90.00 },
 ];
 const NOMES_PECAS = PECAS_CONFIG.map(p => p.nome);
 const GRUPOS      = [
