@@ -93,6 +93,8 @@ exports.handler = async (event) => {
       statement_descriptor: "FARDAMENTO TP",
     };
 
+    console.log("Preference enviada:", JSON.stringify(preference, null, 2));
+
     const response = await fetch("https://api.mercadopago.com/checkout/preferences", {
       method:  "POST",
       headers: {
