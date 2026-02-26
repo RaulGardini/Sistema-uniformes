@@ -45,37 +45,6 @@ const C = {
   pixBg:    "rgba(0,179,126,0.10)",
 };
 
-/* ── Formata CPF enquanto digita ── */
-function formatCPF(value) {
-  const digits = value.replace(/\D/g, "").slice(0, 11);
-  if (digits.length <= 3) return digits;
-  if (digits.length <= 6) return `${digits.slice(0, 3)}.${digits.slice(3)}`;
-  if (digits.length <= 9) return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
-  return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
-}
-
-/* ── Valida CPF ── */
-function validarCPF(cpf) {
-  const digits = cpf.replace(/\D/g, "");
-  if (digits.length !== 11) return false;
-  if (/^(\d)\1{10}$/.test(digits)) return false;
-  let soma = 0;
-  for (let i = 0; i < 9; i++) soma += parseInt(digits[i]) * (10 - i);
-  let resto = (soma * 10) % 11;
-  if (resto === 10) resto = 0;
-  if (resto !== parseInt(digits[9])) return false;
-  soma = 0;
-  for (let i = 0; i < 10; i++) soma += parseInt(digits[i]) * (11 - i);
-  resto = (soma * 10) % 11;
-  if (resto === 10) resto = 0;
-  return resto === parseInt(digits[10]);
-}
-
-/* ── Valida email simples ── */
-function validarEmail(email) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
-
 /* ── Detecta status de retorno do Mercado Pago ── */
 function detectarStatusRetorno() {
   const params = new URLSearchParams(window.location.search);
@@ -131,18 +100,12 @@ body{background:${C.bg};color:${C.text};font-family:'DM Sans',sans-serif;min-hei
   color:${C.accent};margin-bottom:20px;display:flex;align-items:center;gap:10px;}
 .card-title::before,.card-title::after{content:'';flex:1;height:1px;background:${C.border};}
 
-input[type=text],input[type=password],input[type=email]{
+input[type=text],input[type=password]{
   width:100%;background:${C.bg};border:1.5px solid ${C.border};border-radius:11px;
   color:${C.text};font-family:'DM Sans',sans-serif;font-size:.95rem;padding:13px 16px;
   outline:none;transition:border-color .2s,box-shadow .2s;}
 input:focus{border-color:${C.accent};box-shadow:0 0 0 3px ${C.glow};}
 input::placeholder{color:${C.muted};}
-input.input-error{border-color:${C.danger};}
-input.input-success{border-color:${C.success};}
-
-.field-hint{font-size:.72rem;color:${C.muted};margin-top:5px;}
-.field-error{font-size:.72rem;color:${C.danger};margin-top:5px;}
-.field-success{font-size:.72rem;color:${C.success};margin-top:5px;}
 
 .peca-grid{display:flex;flex-direction:column;gap:14px;}
 .peca-row{background:${C.bg};border:1.5px solid ${C.border};border-radius:14px;overflow:hidden;transition:border-color .2s,box-shadow .2s;cursor:pointer;}
@@ -382,7 +345,7 @@ function TelaRetorno({ status, onVoltar }) {
 }
 
 /* ── TELA DE PAGAMENTO ── */
-function TelaPagamento({ nome, email, cpf, pecas, onVoltar }) {
+function TelaPagamento({ nome, pecas, onVoltar }) {
   const [formaSelecionada, setFormaSelecionada] = useState(null);
   const [processando, setProcessando]           = useState(false);
   const [erro, setErro]                         = useState("");
@@ -440,8 +403,6 @@ function TelaPagamento({ nome, email, cpf, pecas, onVoltar }) {
         .from("pedidos")
         .insert([{
           nome:             nome,
-          email:            email,
-          cpf:              cpf.replace(/\D/g, ""),
           pecas,
           pagamento_status: "pendente",
           forma_pagamento:  formaSelecionada,
@@ -458,8 +419,6 @@ function TelaPagamento({ nome, email, cpf, pecas, onVoltar }) {
           pedidoId:  pedidoSalvo.id,
           forma:     formaSelecionada,
           nomeAluna: nome,
-          email:     email,
-          cpf:       cpf.replace(/\D/g, ""),
         }),
       });
 
@@ -547,19 +506,10 @@ function AlunaPage({ statusRetorno }) {
   const [step, setStep]         = useState(statusRetorno ? "retorno" : "nome");
   const [nome, setNome]         = useState("");
   const [sobrenome, setSobrenome] = useState("");
-  const [email, setEmail]       = useState("");
-  const [cpf, setCpf]           = useState("");
   const [pecas, setPecas]       = useState(initPecas());
-
-  /* ── Validações de campo ── */
-  const [emailTouched, setEmailTouched] = useState(false);
-  const [cpfTouched, setCpfTouched]     = useState(false);
 
   const nomeCompleto = `${nome.trim()} ${sobrenome.trim()}`.trim();
   const nomeValido   = nome.trim().length >= 2 && sobrenome.trim().length >= 2;
-  const emailValido  = validarEmail(email);
-  const cpfValido    = validarCPF(cpf);
-  const formValido   = nomeValido && emailValido && cpfValido;
 
   const totalQtd = Object.values(pecas).reduce(
     (a, p) => a + Object.values(p.tamanhos).reduce((s, v) => s + v, 0), 0
@@ -581,9 +531,7 @@ function AlunaPage({ statusRetorno }) {
     }));
   }
   function reiniciar() {
-    setNome(""); setSobrenome(""); setEmail(""); setCpf("");
-    setEmailTouched(false); setCpfTouched(false);
-    setPecas(initPecas()); setStep("nome");
+    setNome(""); setSobrenome(""); setPecas(initPecas()); setStep("nome");
     window.history.replaceState({}, "", "/");
   }
 
@@ -594,8 +542,6 @@ function AlunaPage({ statusRetorno }) {
   if (step === "pagamento") return (
     <TelaPagamento
       nome={nomeCompleto}
-      email={email}
-      cpf={cpf}
       pecas={pecas}
       onVoltar={() => setStep("escolha")}
     />
@@ -604,8 +550,6 @@ function AlunaPage({ statusRetorno }) {
   if (step === "nome") return (
     <div className="card">
       <div className="card-title">Identificação</div>
-
-      {/* Nome */}
       <label style={{ display: "block", fontSize: ".8rem", color: C.muted, marginBottom: 8, letterSpacing: "1px", textTransform: "uppercase" }}>
         Nome
       </label>
@@ -618,8 +562,6 @@ function AlunaPage({ statusRetorno }) {
         onKeyDown={e => { if (e.key === "Enter") document.getElementById("input-sobrenome").focus(); }}
       />
       <br /><br />
-
-      {/* Sobrenome */}
       <label style={{ display: "block", fontSize: ".8rem", color: C.muted, marginBottom: 8, letterSpacing: "1px", textTransform: "uppercase" }}>
         Sobrenome
       </label>
@@ -629,59 +571,10 @@ function AlunaPage({ statusRetorno }) {
         placeholder="Ex: Passos Gardini"
         value={sobrenome}
         onChange={e => setSobrenome(e.target.value)}
-        onKeyDown={e => { if (e.key === "Enter") document.getElementById("input-email").focus(); }}
+        onKeyDown={e => { if (e.key === "Enter" && nomeValido) setStep("escolha"); }}
       />
       <br /><br />
-
-      {/* Email */}
-      <label style={{ display: "block", fontSize: ".8rem", color: C.muted, marginBottom: 8, letterSpacing: "1px", textTransform: "uppercase" }}>
-        E-mail
-      </label>
-      <input
-        id="input-email"
-        type="email"
-        placeholder="Ex: seuemail@gmail.com"
-        value={email}
-        className={emailTouched ? (emailValido ? "input-success" : "input-error") : ""}
-        onChange={e => setEmail(e.target.value)}
-        onBlur={() => setEmailTouched(true)}
-        onKeyDown={e => { if (e.key === "Enter") document.getElementById("input-cpf").focus(); }}
-      />
-      {emailTouched && !emailValido && (
-        <div className="field-error">Informe um e-mail válido</div>
-      )}
-      {emailTouched && emailValido && (
-        <div className="field-success">✓ E-mail válido</div>
-      )}
-      <div className="field-hint">Usado para confirmação do pagamento</div>
-      <br />
-
-      {/* CPF */}
-      <label style={{ display: "block", fontSize: ".8rem", color: C.muted, marginBottom: 8, letterSpacing: "1px", textTransform: "uppercase" }}>
-        CPF
-      </label>
-      <input
-        id="input-cpf"
-        type="text"
-        inputMode="numeric"
-        placeholder="000.000.000-00"
-        value={cpf}
-        className={cpfTouched ? (cpfValido ? "input-success" : "input-error") : ""}
-        onChange={e => setCpf(formatCPF(e.target.value))}
-        onBlur={() => setCpfTouched(true)}
-        onKeyDown={e => { if (e.key === "Enter" && formValido) setStep("escolha"); }}
-        maxLength={14}
-      />
-      {cpfTouched && !cpfValido && cpf.length > 0 && (
-        <div className="field-error">CPF inválido</div>
-      )}
-      {cpfTouched && cpfValido && (
-        <div className="field-success">✓ CPF válido</div>
-      )}
-      <div className="field-hint">Necessário para processar o pagamento com cartão</div>
-      <br />
-
-      <button className="btn-primary" disabled={!formValido} onClick={() => setStep("escolha")}>
+      <button className="btn-primary" disabled={!nomeValido} onClick={() => setStep("escolha")}>
         Continuar →
       </button>
     </div>
@@ -1035,6 +928,7 @@ export default function App() {
   const [adminSenha, setAdminSenha] = useState("");
   const [statusRetorno, setStatusRetorno] = useState(() => detectarStatusRetorno());
 
+  // Detecta retorno via bfcache (botão voltar do navegador)
   useEffect(() => {
     const handlePageShow = (e) => {
       if (e.persisted) {
