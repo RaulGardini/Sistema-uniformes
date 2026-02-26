@@ -23,7 +23,7 @@ exports.handler = async (event) => {
   }
 
   try {
-    const { pedidoId, forma, nomeAluna } = JSON.parse(event.body);
+    const { pedidoId, forma, nomeAluna, email, cpf } = JSON.parse(event.body);
 
     // Busca o pedido no Supabase para calcular o valor no servidor
     const supabaseUrl = process.env.VITE_SUPABASE_URL;
@@ -73,6 +73,11 @@ exports.handler = async (event) => {
       };
     }
 
+    // Separa primeiro nome e sobrenome para o payer
+    const partes    = (nomeAluna || "").trim().split(/\s+/);
+    const firstName = partes[0] || "";
+    const lastName  = partes.slice(1).join(" ") || firstName;
+
     const preference = {
       items: [{
         title:       "Fardamento TP 2026",
@@ -80,14 +85,21 @@ exports.handler = async (event) => {
         unit_price:  totalFinal,
         currency_id: "BRL",
       }],
-      payer:              { name: nomeAluna },
+      payer: {
+        name:    firstName,
+        surname: lastName,
+        email:   email || undefined,
+        identification: cpf ? {
+          type:   "CPF",
+          number: cpf.replace(/\D/g, ""),
+        } : undefined,
+      },
       external_reference: pedidoId,
       back_urls: {
         success: `${siteUrl}/?collection_status=approved`,
         failure: `${siteUrl}/?collection_status=rejected`,
         pending: `${siteUrl}/?collection_status=pending`,
       },
-      // auto_return removido → aluna vê a confirmação na tela do MP
       notification_url:     `${siteUrl}/.netlify/functions/webhook-pagamento`,
       payment_methods:      paymentMethods,
       statement_descriptor: "FARDAMENTO TP",
@@ -113,7 +125,7 @@ exports.handler = async (event) => {
     }
 
     const checkoutUrl = data.init_point;
-    console.log(`Preferência criada | Pedido: ${pedidoId} | Valor: ${totalFinal}`);
+    console.log(`Preferência criada | Pedido: ${pedidoId} | Valor: ${totalFinal} | Email: ${email || "N/A"}`);
 
     return {
       statusCode: 200,
