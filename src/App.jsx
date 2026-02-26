@@ -6,7 +6,7 @@ import imgRegata from "./img/regata.png";
 import imgCalcaMoleton from "./img/calcamoleton.png";
 
 // ── Para ativar manutenção: mude para true. Para desativar: false. ──
-const MANUTENCAO       = false;
+const MANUTENCAO       = true;
 const MANUTENCAO_DATA  = "02/03/2026 às 8h";
 
 const PECAS_CONFIG = [
