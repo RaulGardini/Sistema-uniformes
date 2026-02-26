@@ -5,6 +5,10 @@ import imgShort from "./img/short.png";
 import imgRegata from "./img/regata.png";
 import imgCalcaMoleton from "./img/calcamoleton.png";
 
+// ── Para ativar manutenção: mude para true. Para desativar: false. ──
+const MANUTENCAO       = false;
+const MANUTENCAO_DATA  = "02/03/2026 às 8h";
+
 const PECAS_CONFIG = [
   { img: imgBlusa, nome: "Blusa",         preco: 60.00 },
   { img: imgRegata, nome: "Regata",        preco: 30.00 },
@@ -986,6 +990,17 @@ export default function App() {
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: css }} />
+      {MANUTENCAO && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.92)", zIndex: 9999, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 32, textAlign: "center" }}>
+          <div style={{ fontSize: "3rem", marginBottom: 16 }}>🔧</div>
+          <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: "1.8rem", color: "#e879f9", marginBottom: 12 }}>Sistema em manutenção</div>
+          <div style={{ color: "#9b7ec8", fontSize: ".95rem", lineHeight: 1.7 }}>
+            Estamos realizando melhorias.<br />
+            Voltamos na data <strong style={{ color: "#fdf4ff" }}>{MANUTENCAO_DATA}</strong>.
+            Obrigado!
+          </div>
+        </div>
+      )}
       <div className="grain" />
       <div className="wrap">
         <div className="logo">
