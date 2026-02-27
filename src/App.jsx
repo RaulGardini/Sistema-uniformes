@@ -23,9 +23,10 @@ const fmt  = v => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL"
 const fmt2 = v => parseFloat(v.toFixed(2));
 
 const FORMA_LABEL = {
-  pix:      "Pix",
-  cartao_1x: "Cartão 1×",
-  cartao_2x: "Cartão 2×",
+  pix:             "Pix",
+  cartao_1x:       "Cartão 1×",
+  cartao_2x:       "Cartão 2×",
+  credito_lojinha: "Cartão na lojinha",
 };
 
 const C = {
@@ -43,6 +44,8 @@ const C = {
   dangerBg: "rgba(248,113,113,0.10)",
   pix:      "#00b37e",
   pixBg:    "rgba(0,179,126,0.10)",
+  lojinha:  "#f59e0b",
+  lojinhaBg:"rgba(245,158,11,0.10)",
 };
 
 /* ── Detecta status de retorno do Mercado Pago ── */
@@ -176,14 +179,14 @@ input::placeholder{color:${C.muted};}
   padding:18px 20px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:16px;}
 .pgto-opcao:hover{border-color:${C.muted};}
 .pgto-opcao.selecionada.pix{border-color:${C.pix};box-shadow:0 0 0 1px ${C.pix},inset 0 0 20px ${C.pixBg};}
-.pgto-opcao.selecionada.cartao{border-color:${C.accentD};box-shadow:0 0 0 1px ${C.accentD},inset 0 0 20px ${C.glow};}
+.pgto-opcao.selecionada.lojinha{border-color:${C.lojinha};box-shadow:0 0 0 1px ${C.lojinha},inset 0 0 20px ${C.lojinhaBg};}
 .pgto-icone{font-size:1.8rem;flex-shrink:0;}
 .pgto-info{flex:1;}
 .pgto-nome{font-weight:600;font-size:.97rem;margin-bottom:2px;}
 .pgto-desc{font-size:.78rem;color:${C.muted};}
 .pgto-valor{font-family:'arial',serif;font-size:1.2rem;font-weight:700;text-align:right;}
 .pgto-valor.pix-val{color:${C.pix};}
-.pgto-valor.cartao-val{color:${C.accent};}
+.pgto-valor.lojinha-val{color:${C.lojinha};}
 .pgto-acrescimo{font-size:.7rem;color:${C.muted};text-align:right;margin-top:2px;}
 
 /* ── BOTÕES ── */
@@ -196,6 +199,8 @@ input::placeholder{color:${C.muted};}
 .btn-primary:disabled{opacity:.4;cursor:not-allowed;transform:none;}
 .btn-pix{background:linear-gradient(135deg,#059669,#047857)!important;box-shadow:0 4px 20px rgba(5,150,105,.3)!important;}
 .btn-pix:hover{box-shadow:0 6px 28px rgba(5,150,105,.45)!important;}
+.btn-lojinha{background:linear-gradient(135deg,#d97706,#b45309)!important;box-shadow:0 4px 20px rgba(217,119,6,.3)!important;}
+.btn-lojinha:hover{box-shadow:0 6px 28px rgba(217,119,6,.45)!important;}
 
 .btn-ghost{background:none;border:1.5px solid ${C.border};border-radius:10px;color:${C.muted};
   cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.85rem;padding:8px 16px;transition:all .2s;}
@@ -207,6 +212,7 @@ input::placeholder{color:${C.muted};}
 @keyframes pop{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
 .suc-title{font-family:'Cormorant Garamond',serif;font-size:1.7rem;color:${C.success};margin-bottom:8px;}
 .suc-title.falhou{color:${C.danger};}
+.suc-title.lojinha{color:${C.lojinha};}
 .suc-sub{color:${C.muted};font-size:.9rem;line-height:1.6;}
 
 /* ── ADMIN ── */
@@ -231,6 +237,7 @@ input::placeholder{color:${C.muted};}
 .ptab.active{background:${C.glow};border-color:${C.accent};color:${C.accent};}
 
 .pedido-item{background:${C.bg};border:1px solid rgba(110,231,183,.25);border-radius:12px;padding:15px 18px;margin-bottom:9px;}
+.pedido-item.pendente-lojinha{border-color:rgba(245,158,11,.35);}
 .pedido-nome{font-weight:600;margin-bottom:8px;font-size:.97rem;}
 .pedido-tags{display:flex;flex-wrap:wrap;gap:5px;}
 .tag{background:${C.glow};border:1px solid ${C.accentD};border-radius:6px;font-size:.73rem;color:${C.accent};padding:3px 9px;}
@@ -242,6 +249,11 @@ input::placeholder{color:${C.muted};}
   cursor:pointer;font-size:.78rem;padding:5px 12px;transition:all .2s;display:flex;align-items:center;
   gap:5px;white-space:nowrap;font-family:'DM Sans',sans-serif;}
 .del-btn:hover{border-color:${C.danger};color:${C.danger};background:${C.dangerBg};}
+
+.confirm-btn{background:none;border:1.5px solid ${C.lojinha};border-radius:8px;color:${C.lojinha};
+  cursor:pointer;font-size:.78rem;padding:5px 12px;transition:all .2s;display:flex;align-items:center;
+  gap:5px;white-space:nowrap;font-family:'DM Sans',sans-serif;}
+.confirm-btn:hover{background:${C.lojinhaBg};}
 
 .empty-state{text-align:center;padding:40px;color:${C.muted};}
 .empty-state .em{font-size:2.5rem;display:block;margin-bottom:12px;}
@@ -268,6 +280,9 @@ input::placeholder{color:${C.muted};}
 .btn-cancel{flex:1;background:none;border:1.5px solid ${C.border};border-radius:11px;color:${C.muted};
   font-family:'DM Sans',sans-serif;font-size:.9rem;padding:13px;cursor:pointer;transition:all .2s;}
 .btn-cancel:hover{border-color:${C.muted};color:${C.text};}
+.btn-confirm-modal{flex:1;background:linear-gradient(135deg,#d97706,#b45309);border:none;border-radius:11px;
+  color:white;font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:500;padding:13px;cursor:pointer;transition:all .2s;}
+.btn-confirm-modal:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(217,119,6,.4);}
 `;
 
 /* ── helpers ── */
@@ -292,19 +307,25 @@ function gerarTags(pecas) {
 }
 
 /* ── MODAL ── */
-function Modal({ nome, onConfirm, onCancel }) {
+function Modal({ nome, onConfirm, onCancel, tipo }) {
+  const isConfirm = tipo === "confirmar";
   return (
     <div className="modal-overlay" onClick={onCancel}>
       <div className="modal" onClick={e => e.stopPropagation()}>
-        <div className="modal-icon">🗑️</div>
-        <div className="modal-title">Remover pedido?</div>
+        <div className="modal-icon">{isConfirm ? "✅" : "🗑️"}</div>
+        <div className="modal-title">{isConfirm ? "Confirmar pagamento?" : "Remover pedido?"}</div>
         <div className="modal-sub">
-          Tem certeza que deseja remover o pedido de <strong>{nome}</strong>?<br />
-          Esta ação não pode ser desfeita.
+          {isConfirm
+            ? <>Confirmar que <strong>{nome}</strong> pagou com cartão na lojinha?<br />O pedido será marcado como pago.</>
+            : <>Tem certeza que deseja remover o pedido de <strong>{nome}</strong>?<br />Esta ação não pode ser desfeita.</>
+          }
         </div>
         <div className="modal-btns">
           <button className="btn-cancel" onClick={onCancel}>Cancelar</button>
-          <button className="btn-danger" onClick={onConfirm}>Sim, remover</button>
+          {isConfirm
+            ? <button className="btn-confirm-modal" onClick={onConfirm}>Sim, confirmar</button>
+            : <button className="btn-danger" onClick={onConfirm}>Sim, remover</button>
+          }
         </div>
       </div>
     </div>
@@ -324,18 +345,25 @@ function QtyControl({ value, onChange }) {
 
 /* ── TELA DE RETORNO DO MERCADO PAGO ── */
 function TelaRetorno({ status, onVoltar }) {
-  const isFail = status === "falhou";
+  const isFail    = status === "falhou";
+  const isLojinha = status === "lojinha";
   return (
     <div className="card">
       <div className="success-box">
-        <div className="suc-icon">{isFail ? "😕" : "🎉"}</div>
-        <div className={`suc-title ${isFail ? "falhou" : "Quase lá!"}`}>
-          {isFail ? "Pagamento não confirmado!" : "Se você realizou o pix, irá aparecer uma confirmação no seu Email em instantes!"}
+        <div className="suc-icon">{isFail ? "😕" : isLojinha ? "🏪" : "🎉"}</div>
+        <div className={`suc-title ${isFail ? "falhou" : isLojinha ? "lojinha" : ""}`}>
+          {isFail
+            ? "Pagamento não confirmado!"
+            : isLojinha
+              ? "Pedido reservado com sucesso!"
+              : "Se você realizou o pix, irá aparecer uma confirmação no seu Email em instantes!"}
         </div>
         <div className="suc-sub">
           {isFail
             ? "O pagamento não foi processado. Você pode tentar novamente."
-            : "Assim que a confirmação do pagamento aparecer no seu Email, Fique atento no WhatsApp, informaremos em breve a data para você retirar o seu fardamento na loja TP. Obrigado!"}
+            : isLojinha
+              ? "Seu pedido foi salvo. Compareça à lojinha TP para efetuar o pagamento com cartão e retirar seu fardamento. Fique atento no WhatsApp para mais informações!"
+              : "Assim que a confirmação do pagamento aparecer no seu Email, Fique atento no WhatsApp, informaremos em breve a data para você retirar o seu fardamento na loja TP. Obrigado!"}
         </div>
         <br />
         <button className="btn-ghost" onClick={onVoltar}>← Voltar ao início</button>
@@ -350,15 +378,16 @@ function TelaPagamento({ nome, pecas, onVoltar }) {
   const [processando, setProcessando]           = useState(false);
   const [erro, setErro]                         = useState("");
   const [mostrarPendente, setMostrarPendente]   = useState(false);
+  const [mostrarLojinha, setMostrarLojinha]      = useState(false);
   const timerRef    = useRef(null);
-  const pedidoIdRef = useRef(null); // Guarda o ID do pedido atual para reutilização
+  const pedidoIdRef = useRef(null);
 
   useEffect(() => () => clearTimeout(timerRef.current), []);
 
   if (mostrarPendente) return <TelaRetorno status="pendente" onVoltar={onVoltar} />;
+  if (mostrarLojinha)  return <TelaRetorno status="lojinha"  onVoltar={onVoltar} />;
 
-  const totalBase   = calcTotal(pecas);
-  const totalCartao = fmt2(totalBase * 1.05);
+  const totalBase = calcTotal(pecas);
 
   const opcoes = [
     {
@@ -371,23 +400,13 @@ function TelaPagamento({ nome, pecas, onVoltar }) {
       valCls:  "pix-val",
     },
     {
-      id:      "cartao_1x",
-      icone:   "💳",
-      nome:    "Cartão de crédito — 1×",
-      desc:    "+5% de acréscimo sobre o total",
-      valor:   totalCartao,
-      cls:     "cartao",
-      valCls:  "cartao-val",
-      acrescimo: true,
-    },
-    {
-      id:      "cartao_2x",
-      icone:   "💳",
-      nome:    "Cartão de crédito — 2×",
-      desc:    "+5% de acréscimo sobre o total",
-      valor:   totalCartao,
-      cls:     "cartao",
-      valCls:  "cartao-val",
+      id:      "credito_lojinha",
+      icone:   "🏪",
+      nome:    "Cartão de crédito na lojinha",
+      desc:    "Pague presencialmente na loja TP · +5% de acréscimo",
+      valor:   fmt2(totalBase * 1.05),
+      cls:     "lojinha",
+      valCls:  "lojinha-val",
       acrescimo: true,
     },
   ];
@@ -407,7 +426,7 @@ function TelaPagamento({ nome, pecas, onVoltar }) {
           .insert([{
             nome:             nome,
             pecas,
-            pagamento_status: "pendente",
+            pagamento_status: formaSelecionada === "credito_lojinha" ? "pendente_credito_lojinha" : "pendente",
             forma_pagamento:  formaSelecionada,
           }])
           .select()
@@ -420,10 +439,20 @@ function TelaPagamento({ nome, pecas, onVoltar }) {
         // Se já tem pedido mas mudou a forma de pagamento, atualiza
         await supabase
           .from("pedidos")
-          .update({ forma_pagamento: formaSelecionada })
+          .update({
+            forma_pagamento:  formaSelecionada,
+            pagamento_status: formaSelecionada === "credito_lojinha" ? "pendente_credito_lojinha" : "pendente",
+          })
           .eq("id", pedidoId);
       }
 
+      // ── Se é pagamento na lojinha, não precisa ir pro MP ──
+      if (formaSelecionada === "credito_lojinha") {
+        setMostrarLojinha(true);
+        return;
+      }
+
+      // ── Pix: vai pro Mercado Pago normalmente ──
       const response = await fetch("/.netlify/functions/criar-pagamento", {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
@@ -497,16 +526,18 @@ function TelaPagamento({ nome, pecas, onVoltar }) {
           ← Voltar
         </button>
         <button
-          className={`btn-primary ${formaSelecionada === "pix" ? "btn-pix" : ""}`}
+          className={`btn-primary ${formaSelecionada === "pix" ? "btn-pix" : formaSelecionada === "credito_lojinha" ? "btn-lojinha" : ""}`}
           style={{ flex: 1, marginTop: 0 }}
           disabled={!formaSelecionada || processando}
           onClick={irParaPagamento}
         >
           {processando
-            ? "Redirecionando…"
-            : formaSelecionada
-              ? `Pagar ${fmt(opcaoAtual.valor)} →`
-              : "Selecione uma forma de pagamento"}
+            ? "Processando…"
+            : formaSelecionada === "credito_lojinha"
+              ? "Reservar pedido →"
+              : formaSelecionada
+                ? `Pagar ${fmt(opcaoAtual.valor)} →`
+                : "Selecione uma forma de pagamento"}
         </button>
       </div>
     </div>
@@ -715,28 +746,39 @@ function AdminLogin({ onEntrar }) {
 
 /* ── ADMIN ── */
 function AdminPage({ onSair, adminSenha }) {
-  const [aba, setAba]             = useState("resumo");
-  const [pedidos, setPedidos]     = useState(null);
-  const [filtro, setFiltro]       = useState("Todos");
-  const [loading, setLoading]     = useState(true);
-  const [modalId, setModalId]     = useState(null);
-  const [erroAdmin, setErroAdmin] = useState("");
-  const [busca, setBusca]         = useState("");
+  const [aba, setAba]               = useState("resumo");
+  const [pedidos, setPedidos]       = useState(null);
+  const [pedidosLojinha, setPedidosLojinha] = useState(null);
+  const [filtro, setFiltro]         = useState("Todos");
+  const [loading, setLoading]       = useState(true);
+  const [modalId, setModalId]       = useState(null);
+  const [modalTipo, setModalTipo]   = useState("remover");
+  const [erroAdmin, setErroAdmin]   = useState("");
+  const [busca, setBusca]           = useState("");
 
   async function carregar() {
     setLoading(true); setErroAdmin("");
     try {
-      const { data, error } = await supabase
+      const { data: pagos, error: e1 } = await supabase
         .from("pedidos")
         .select("*")
         .eq("pagamento_status", "pago")
         .order("hora", { ascending: false });
-      if (error) throw error;
-      setPedidos(data || []);
+      if (e1) throw e1;
+
+      const { data: lojinha, error: e2 } = await supabase
+        .from("pedidos")
+        .select("*")
+        .eq("pagamento_status", "pendente_credito_lojinha")
+        .order("hora", { ascending: false });
+      if (e2) throw e2;
+
+      setPedidos(pagos || []);
+      setPedidosLojinha(lojinha || []);
     } catch (e) {
       console.error(e);
       setErroAdmin("Erro ao carregar pedidos.");
-      setPedidos([]);
+      setPedidos([]); setPedidosLojinha([]);
     }
     setLoading(false);
   }
@@ -750,14 +792,30 @@ function AdminPage({ onSair, adminSenha }) {
         body:    JSON.stringify({ pedidoId: modalId, senha: adminSenha }),
       });
       if (!res.ok) throw new Error("Erro ao deletar");
-      setModalId(null); carregar();
+      setModalId(null); setModalTipo("remover"); carregar();
     } catch (e) {
       console.error(e); setErroAdmin("Erro ao remover pedido."); setModalId(null);
     }
   }
 
+  async function confirmarPagamentoLojinha() {
+    if (!modalId) return;
+    try {
+      const res = await fetch("/.netlify/functions/confirmar-pedido-lojinha", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ pedidoId: modalId, senha: adminSenha }),
+      });
+      if (!res.ok) throw new Error("Erro ao confirmar");
+      setModalId(null); setModalTipo("remover"); carregar();
+    } catch (e) {
+      console.error(e); setErroAdmin("Erro ao confirmar pedido."); setModalId(null);
+    }
+  }
+
   useEffect(() => { carregar(); }, []);
 
+  const todosPedidos = [...(pedidos || []), ...(pedidosLojinha || [])];
   const totais = Object.fromEntries(
     NOMES_PECAS.map(p => [p, Object.fromEntries(TODAS_CHAVES.map(k => [k, 0]))])
   );
@@ -772,7 +830,7 @@ function AdminPage({ onSair, adminSenha }) {
     });
   });
 
-  const nomeModal = pedidos?.find(p => p.id === modalId)?.nome || "";
+  const nomeModal = todosPedidos?.find(p => p.id === modalId)?.nome || "";
   const pecasFiltradas = filtro === "Todos" ? NOMES_PECAS : [filtro];
 
   let pedidosFiltrados = pedidos || [];
@@ -783,9 +841,21 @@ function AdminPage({ onSair, adminSenha }) {
     p.nome?.toLowerCase().includes(busca.toLowerCase())
   );
 
+  let lojinhaFiltrados = pedidosLojinha || [];
+  if (busca) lojinhaFiltrados = lojinhaFiltrados.filter(p =>
+    p.nome?.toLowerCase().includes(busca.toLowerCase())
+  );
+
   return (
     <>
-      {modalId && <Modal nome={nomeModal} onConfirm={confirmarDelete} onCancel={() => setModalId(null)} />}
+      {modalId && (
+        <Modal
+          nome={nomeModal}
+          tipo={modalTipo}
+          onConfirm={modalTipo === "confirmar" ? confirmarPagamentoLojinha : confirmarDelete}
+          onCancel={() => { setModalId(null); setModalTipo("remover"); }}
+        />
+      )}
 
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
         <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: "1.05rem", color: C.accent, fontStyle: "italic" }}>
@@ -800,8 +870,15 @@ function AdminPage({ onSair, adminSenha }) {
       {erroAdmin && <div className="alert" style={{ marginBottom: 16 }}>{erroAdmin}</div>}
 
       <div className="ptab-row">
-        {[["resumo", "📊 Resumo"], ["pedidos", "📋 Pedidos"]].map(([a, lbl]) => (
-          <button key={a} className={`ptab ${aba === a ? "active" : ""}`} onClick={() => setAba(a)}>{lbl}</button>
+        {[["resumo", "📊 Resumo"], ["pedidos", "📋 Pedidos"], ["lojinha", "🏪 Lojinha"]].map(([a, lbl]) => (
+          <button key={a} className={`ptab ${aba === a ? "active" : ""}`} onClick={() => setAba(a)}>
+            {lbl}
+            {a === "lojinha" && (pedidosLojinha?.length || 0) > 0 && (
+              <span style={{ marginLeft: 6, background: C.lojinha, color: "#000", borderRadius: 10, padding: "1px 7px", fontSize: ".7rem", fontWeight: 700 }}>
+                {pedidosLojinha.length}
+              </span>
+            )}
+          </button>
         ))}
       </div>
 
@@ -829,6 +906,12 @@ function AdminPage({ onSair, adminSenha }) {
               <div className="stat-num" style={{ fontSize: "1.2rem" }}>{fmt(receitaTotal)}</div>
               <div className="stat-lbl">Receita total</div>
             </div>
+            {(pedidosLojinha?.length || 0) > 0 && (
+              <div className="stat-card" style={{ borderColor: C.lojinha }}>
+                <div className="stat-num" style={{ color: C.lojinha }}>{pedidosLojinha.length}</div>
+                <div className="stat-lbl">Pendentes lojinha</div>
+              </div>
+            )}
           </div>
 
           <div style={{ marginTop: 24 }}>
@@ -894,7 +977,6 @@ function AdminPage({ onSair, adminSenha }) {
                   <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 8 }}>
                     <div className="pedido-nome">{p.nome}</div>
                     <span
-                      className="status-badge"
                       style={{ color: C.success, borderColor: C.success, background: `${C.success}18`, fontSize: ".72rem", padding: "3px 10px", borderRadius: 20, fontWeight: 600, border: "1px solid" }}
                     >
                       Confirmado ✓
@@ -920,9 +1002,65 @@ function AdminPage({ onSair, adminSenha }) {
                         )}
                       </div>
                     </div>
-                    <button className="del-btn" onClick={() => setModalId(p.id)}>
+                    <button className="del-btn" onClick={() => { setModalId(p.id); setModalTipo("remover"); }}>
                       🗑 Remover
                     </button>
+                  </div>
+                </div>
+              ))
+          }
+        </div>
+      )}
+
+      {!loading && aba === "lojinha" && (
+        <div className="card">
+          <div className="card-title">Pagamentos pendentes na lojinha ({lojinhaFiltrados?.length || 0})</div>
+          <input
+            type="text"
+            placeholder="Pesquisar por nome..."
+            value={busca}
+            onChange={e => setBusca(e.target.value)}
+            style={{ width: "100%", marginBottom: 14, padding: "8px 12px", borderRadius: 8, border: `1px solid ${C.border}`, background: "rgba(0,0,0,.2)", color: C.text, fontSize: ".88rem", outline: "none", boxSizing: "border-box" }}
+          />
+
+          {lojinhaFiltrados?.length === 0
+            ? <div className="empty-state"><span className="em">🏪</span>Nenhum pedido pendente na lojinha.</div>
+            : lojinhaFiltrados.map(p => (
+                <div key={p.id} className="pedido-item pendente-lojinha">
+                  <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 8 }}>
+                    <div className="pedido-nome">{p.nome}</div>
+                    <span
+                      style={{ color: C.lojinha, borderColor: C.lojinha, background: `${C.lojinha}18`, fontSize: ".72rem", padding: "3px 10px", borderRadius: 20, fontWeight: 600, border: "1px solid" }}
+                    >
+                      Pendente 🏪
+                    </span>
+                  </div>
+                  <div className="pedido-tags">
+                    {gerarTags(p.pecas).map((tag, i) => <span key={i} className="tag">{tag}</span>)}
+                  </div>
+                  <div className="pedido-footer">
+                    <div>
+                      <div className="pedido-hora">
+                        {new Date(p.hora).toLocaleString("pt-BR", {
+                          day: "2-digit", month: "2-digit", year: "numeric",
+                          hour: "2-digit", minute: "2-digit"
+                        })}
+                      </div>
+                      <div className="pedido-total-lbl">
+                        {fmt(calcTotal(p.pecas) * 1.05)}
+                        <span style={{ fontSize: ".92rem", color: C.muted, marginLeft: 6 }}>
+                          via Cartão na lojinha
+                        </span>
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", gap: 6 }}>
+                      <button className="confirm-btn" onClick={() => { setModalId(p.id); setModalTipo("confirmar"); }}>
+                        ✅ Confirmar
+                      </button>
+                      <button className="del-btn" onClick={() => { setModalId(p.id); setModalTipo("remover"); }}>
+                        🗑
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))
@@ -940,7 +1078,6 @@ export default function App() {
   const [adminSenha, setAdminSenha] = useState("");
   const [statusRetorno, setStatusRetorno] = useState(() => detectarStatusRetorno());
 
-  // Detecta retorno via bfcache (botão voltar do navegador)
   useEffect(() => {
     const handlePageShow = (e) => {
       if (e.persisted) {
