@@ -362,7 +362,7 @@ function TelaRetorno({ status, onVoltar }) {
           {isFail
             ? "O pagamento não foi processado. Você pode tentar novamente."
             : isLojinha
-              ? "Seu pedido foi salvo. Compareça à lojinha TP para efetuar o pagamento com cartão e retirar seu fardamento. Fique atento no WhatsApp para mais informações!"
+              ? "Seu pedido foi salvo. Compareça à lojinha TP para efetuar o pagamento com cartão, fique atendo ao WhatsApp para saber a data de retirada dos uniformes!"
               : "Assim que a confirmação do pagamento aparecer no seu Email, Fique atento no WhatsApp, informaremos em breve a data para você retirar o seu fardamento na loja TP. Obrigado!"}
         </div>
         <br />
