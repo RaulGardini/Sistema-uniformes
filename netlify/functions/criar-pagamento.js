@@ -25,12 +25,12 @@ exports.handler = async (event) => {
   try {
     const { pedidoId, forma, nomeAluna } = JSON.parse(event.body);
 
-    // Busca o pedido no Supabase para calcular o valor no servidor
     const supabaseUrl = process.env.VITE_SUPABASE_URL;
     const supabaseKey = process.env.VITE_SUPABASE_KEY;
 
+    // Busca o pedido no Supabase (inclui preference_id e checkout_url pra idempotência)
     const pedidoRes = await fetch(
-      `${supabaseUrl}/rest/v1/pedidos?id=eq.${pedidoId}&select=pecas`,
+      `${supabaseUrl}/rest/v1/pedidos?id=eq.${pedidoId}&select=pecas,preference_id,checkout_url,forma_pagamento`,
       {
         headers: {
           apikey:        supabaseKey,
@@ -43,6 +43,16 @@ exports.handler = async (event) => {
 
     const [pedido] = await pedidoRes.json();
     if (!pedido) throw new Error("Pedido não encontrado");
+
+    // ── IDEMPOTÊNCIA: se já tem preferência criada para mesma forma, reutiliza ──
+    if (pedido.preference_id && pedido.checkout_url && pedido.forma_pagamento === forma) {
+      console.log(`Reutilizando preferência existente | Pedido: ${pedidoId} | Preference: ${pedido.preference_id}`);
+      return {
+        statusCode: 200,
+        headers:    { "Content-Type": "application/json" },
+        body:       JSON.stringify({ checkout_url: pedido.checkout_url, preference_id: pedido.preference_id }),
+      };
+    }
 
     const totalBase  = calcTotal(pedido.pecas);
     if (totalBase <= 0) throw new Error("Pedido sem itens");
@@ -73,6 +83,11 @@ exports.handler = async (event) => {
       };
     }
 
+    // Separa primeiro nome e sobrenome
+    const partes    = (nomeAluna || "").trim().split(/\s+/);
+    const firstName = partes[0] || "";
+    const lastName  = partes.slice(1).join(" ") || firstName;
+
     const preference = {
       items: [{
         title:       "Fardamento TP 2026",
@@ -80,14 +95,16 @@ exports.handler = async (event) => {
         unit_price:  totalFinal,
         currency_id: "BRL",
       }],
-      payer:              { name: nomeAluna },
+      payer: {
+        name:    firstName,
+        surname: lastName,
+      },
       external_reference: pedidoId,
       back_urls: {
         success: `${siteUrl}/?collection_status=approved`,
         failure: `${siteUrl}/?collection_status=rejected`,
         pending: `${siteUrl}/?collection_status=pending`,
       },
-      // auto_return removido → aluna vê a confirmação na tela do MP
       notification_url:     `${siteUrl}/.netlify/functions/webhook-pagamento`,
       payment_methods:      paymentMethods,
       statement_descriptor: "FARDAMENTO TP",
@@ -115,7 +132,26 @@ exports.handler = async (event) => {
     }
 
     const checkoutUrl = data.init_point;
-    console.log(`Preferência criada | Pedido: ${pedidoId} | Valor: ${totalFinal}`);
+
+    // ── Salva preference_id e checkout_url no pedido para reutilização futura ──
+    await fetch(
+      `${supabaseUrl}/rest/v1/pedidos?id=eq.${pedidoId}`,
+      {
+        method: "PATCH",
+        headers: {
+          apikey:         supabaseKey,
+          Authorization:  `Bearer ${supabaseKey}`,
+          "Content-Type": "application/json",
+          Prefer:         "return=minimal",
+        },
+        body: JSON.stringify({
+          preference_id: data.id,
+          checkout_url:  checkoutUrl,
+        }),
+      }
+    );
+
+    console.log(`Preferência criada | Pedido: ${pedidoId} | Valor: ${totalFinal} | Preference: ${data.id}`);
 
     return {
       statusCode: 200,
