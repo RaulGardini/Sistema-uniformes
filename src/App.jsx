@@ -5,10 +5,6 @@ import imgShort from "./img/short.png";
 import imgRegata from "./img/regata.png";
 import imgCalcaMoleton from "./img/calcamoleton.png";
 
-// ── Para ativar manutenção: mude para true. Para desativar: false. ──
-const MANUTENCAO       = true;
-const MANUTENCAO_DATA  = "02/03/2026 às 8h";
-
 const PECAS_CONFIG = [
   { img: imgBlusa, nome: "Blusa",         preco: 60.00 },
   { img: imgRegata, nome: "Regata",        preco: 30.00 },
@@ -28,7 +24,6 @@ const fmt2 = v => parseFloat(v.toFixed(2));
 
 const FORMA_LABEL = {
   pix:      "Pix",
-  lojinha:  "Na lojinha",
   cartao_1x: "Cartão 1×",
   cartao_2x: "Cartão 2×",
 };
@@ -182,8 +177,6 @@ input::placeholder{color:${C.muted};}
 .pgto-opcao:hover{border-color:${C.muted};}
 .pgto-opcao.selecionada.pix{border-color:${C.pix};box-shadow:0 0 0 1px ${C.pix},inset 0 0 20px ${C.pixBg};}
 .pgto-opcao.selecionada.cartao{border-color:${C.accentD};box-shadow:0 0 0 1px ${C.accentD},inset 0 0 20px ${C.glow};}
-.pgto-opcao.selecionada.lojinha{border-color:${C.gold};box-shadow:0 0 0 1px ${C.gold},inset 0 0 20px rgba(244,114,182,.08);}
-.pgto-valor.lojinha-val{color:${C.gold};}
 .pgto-icone{font-size:1.8rem;flex-shrink:0;}
 .pgto-info{flex:1;}
 .pgto-nome{font-weight:600;font-size:.97rem;margin-bottom:2px;}
@@ -357,91 +350,85 @@ function TelaPagamento({ nome, pecas, onVoltar }) {
   const [processando, setProcessando]           = useState(false);
   const [erro, setErro]                         = useState("");
   const [mostrarPendente, setMostrarPendente]   = useState(false);
-  const [pedidoConfirmado, setPedidoConfirmado] = useState(false);
-  const timerRef = useRef(null);
+  const timerRef    = useRef(null);
+  const pedidoIdRef = useRef(null); // Guarda o ID do pedido atual para reutilização
 
   useEffect(() => () => clearTimeout(timerRef.current), []);
 
   if (mostrarPendente) return <TelaRetorno status="pendente" onVoltar={onVoltar} />;
 
-  if (pedidoConfirmado) return (
-    <div className="card">
-      <div className="success-box">
-        <div className="suc-icon">🛍️</div>
-        <div className="suc-title">Pedido registrado!</div>
-        <div className="suc-sub">
-          Seu pedido foi computado com sucesso.<br /><br />
-          Compareça à loja TP para realizar o pagamento e retirar seu fardamento. Obrigado!
-        </div>
-        <br />
-        <button className="btn-ghost" onClick={onVoltar}>← Voltar ao início</button>
-      </div>
-    </div>
-  );
-
-  const totalBase = calcTotal(pecas);
+  const totalBase   = calcTotal(pecas);
+  const totalCartao = fmt2(totalBase * 1.05);
 
   const opcoes = [
     {
-      id:     "pix",
-      icone:  "❖",
-      nome:   "Pix",
-      desc:   "Aprovação imediata · Sem acréscimo",
-      valor:  totalBase,
-      cls:    "pix",
-      valCls: "pix-val",
+      id:      "pix",
+      icone:   "❖",
+      nome:    "Pix",
+      desc:    "Aprovação imediata · Sem acréscimo",
+      valor:   totalBase,
+      cls:     "pix",
+      valCls:  "pix-val",
     },
     {
-      id:     "lojinha",
-      icone:  "🛍️",
-      nome:   "Pagar na lojinha",
-      desc:   "Pague presencialmente na loja TP",
-      valor:  totalBase,
-      cls:    "lojinha",
-      valCls: "lojinha-val",
+      id:      "cartao_1x",
+      icone:   "💳",
+      nome:    "Cartão de crédito — 1×",
+      desc:    "+5% de acréscimo sobre o total",
+      valor:   totalCartao,
+      cls:     "cartao",
+      valCls:  "cartao-val",
+      acrescimo: true,
+    },
+    {
+      id:      "cartao_2x",
+      icone:   "💳",
+      nome:    "Cartão de crédito — 2×",
+      desc:    "+5% de acréscimo sobre o total",
+      valor:   totalCartao,
+      cls:     "cartao",
+      valCls:  "cartao-val",
+      acrescimo: true,
     },
   ];
 
   async function irParaPagamento() {
-    if (!formaSelecionada) return;
+    if (!formaSelecionada || processando) return;
     setErro("");
     setProcessando(true);
 
     try {
-      if (formaSelecionada === "lojinha") {
-        const { error } = await supabase
+      let pedidoId = pedidoIdRef.current;
+
+      // ── IDEMPOTÊNCIA: só cria novo pedido se não tiver um já criado nesta sessão ──
+      if (!pedidoId) {
+        const { data: pedidoSalvo, error: errSalvar } = await supabase
           .from("pedidos")
           .insert([{
-            nome,
+            nome:             nome,
             pecas,
-            pagamento_status: "pagamento_pendente_lojinha",
-            forma_pagamento:  "lojinha",
-            valor_pago:       totalBase,
-          }]);
-        if (error) throw error;
-        setProcessando(false);
-        setPedidoConfirmado(true);
-        return;
+            pagamento_status: "pendente",
+            forma_pagamento:  formaSelecionada,
+          }])
+          .select()
+          .single();
+
+        if (errSalvar) throw errSalvar;
+        pedidoId = pedidoSalvo.id;
+        pedidoIdRef.current = pedidoId;
+      } else {
+        // Se já tem pedido mas mudou a forma de pagamento, atualiza
+        await supabase
+          .from("pedidos")
+          .update({ forma_pagamento: formaSelecionada })
+          .eq("id", pedidoId);
       }
-
-      const { data: pedidoSalvo, error: errSalvar } = await supabase
-        .from("pedidos")
-        .insert([{
-          nome,
-          pecas,
-          pagamento_status: "pendente",
-          forma_pagamento:  formaSelecionada,
-        }])
-        .select()
-        .single();
-
-      if (errSalvar) throw errSalvar;
 
       const response = await fetch("/.netlify/functions/criar-pagamento", {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          pedidoId:  pedidoSalvo.id,
+          pedidoId:  pedidoId,
           forma:     formaSelecionada,
           nomeAluna: nome,
         }),
@@ -493,7 +480,12 @@ function TelaPagamento({ nome, pecas, onVoltar }) {
               <div className="pgto-nome">{op.nome}</div>
               <div className="pgto-desc">{op.desc}</div>
             </div>
-            <div className={`pgto-valor ${op.valCls}`}>{fmt(op.valor)}</div>
+            <div>
+              <div className={`pgto-valor ${op.valCls}`}>{fmt(op.valor)}</div>
+              {op.acrescimo && (
+                <div className="pgto-acrescimo">+{fmt(op.valor - totalBase)} de acréscimo</div>
+              )}
+            </div>
           </div>
         ))}
       </div>
@@ -511,12 +503,10 @@ function TelaPagamento({ nome, pecas, onVoltar }) {
           onClick={irParaPagamento}
         >
           {processando
-            ? (formaSelecionada === "lojinha" ? "Registrando…" : "Redirecionando…")
-            : formaSelecionada === "lojinha"
-              ? "Confirmar pedido →"
-              : formaSelecionada
-                ? `Pagar ${fmt(opcaoAtual.valor)} →`
-                : "Selecione uma forma de pagamento"}
+            ? "Redirecionando…"
+            : formaSelecionada
+              ? `Pagar ${fmt(opcaoAtual.valor)} →`
+              : "Selecione uma forma de pagamento"}
         </button>
       </div>
     </div>
@@ -739,7 +729,7 @@ function AdminPage({ onSair, adminSenha }) {
       const { data, error } = await supabase
         .from("pedidos")
         .select("*")
-        .in("pagamento_status", ["pago", "pagamento_pendente_lojinha"])
+        .eq("pagamento_status", "pago")
         .order("hora", { ascending: false });
       if (error) throw error;
       setPedidos(data || []);
@@ -749,20 +739,6 @@ function AdminPage({ onSair, adminSenha }) {
       setPedidos([]);
     }
     setLoading(false);
-  }
-
-  async function confirmarLojinha(pedidoId) {
-    try {
-      const res = await fetch("/.netlify/functions/confirmar-pedido-lojinha", {
-        method:  "POST",
-        headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ pedidoId, senha: adminSenha }),
-      });
-      if (!res.ok) throw new Error("Erro ao confirmar");
-      carregar();
-    } catch (e) {
-      console.error(e); setErroAdmin("Erro ao confirmar pedido.");
-    }
   }
 
   async function confirmarDelete() {
@@ -782,13 +758,11 @@ function AdminPage({ onSair, adminSenha }) {
 
   useEffect(() => { carregar(); }, []);
 
-  const pedidosPagos = (pedidos || []).filter(p => p.pagamento_status === "pago");
-
   const totais = Object.fromEntries(
     NOMES_PECAS.map(p => [p, Object.fromEntries(TODAS_CHAVES.map(k => [k, 0]))])
   );
   let receitaTotal = 0;
-  pedidosPagos.forEach(p => {
+  (pedidos || []).forEach(p => {
     PECAS_CONFIG.forEach(({ nome, preco }) => {
       TODAS_CHAVES.forEach(chave => {
         const q = p.pecas?.[nome]?.tamanhos?.[chave] || 0;
@@ -838,7 +812,7 @@ function AdminPage({ onSair, adminSenha }) {
           <div className="card-title">Resumo geral</div>
           <div className="stat-grid">
             <div className="stat-card hl">
-              <div className="stat-num">{pedidosPagos.length}</div>
+              <div className="stat-num">{pedidos?.length}</div>
               <div className="stat-lbl">Pedidos confirmados</div>
             </div>
             {PECAS_CONFIG.map(({ nome, preco }) => {
@@ -919,21 +893,12 @@ function AdminPage({ onSair, adminSenha }) {
                 <div key={p.id} className="pedido-item">
                   <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 8 }}>
                     <div className="pedido-nome">{p.nome}</div>
-                    {p.pagamento_status === "pagamento_pendente_lojinha" ? (
-                      <span
-                        onClick={() => confirmarLojinha(p.id)}
-                        style={{ color: "#f59e0b", borderColor: "#f59e0b", background: "rgba(245,158,11,0.1)", fontSize: ".72rem", padding: "3px 10px", borderRadius: 20, fontWeight: 600, border: "1px solid", cursor: "pointer", whiteSpace: "nowrap" }}
-                        title="Clique para confirmar pagamento"
-                      >
-                        Pendente lojinha · Confirmar ✓
-                      </span>
-                    ) : (
-                      <span
-                        style={{ color: C.success, borderColor: C.success, background: `${C.success}18`, fontSize: ".72rem", padding: "3px 10px", borderRadius: 20, fontWeight: 600, border: "1px solid" }}
-                      >
-                        Confirmado ✓
-                      </span>
-                    )}
+                    <span
+                      className="status-badge"
+                      style={{ color: C.success, borderColor: C.success, background: `${C.success}18`, fontSize: ".72rem", padding: "3px 10px", borderRadius: 20, fontWeight: 600, border: "1px solid" }}
+                    >
+                      Confirmado ✓
+                    </span>
                   </div>
                   <div className="pedido-tags">
                     {gerarTags(p.pecas).map((tag, i) => <span key={i} className="tag">{tag}</span>)}
@@ -990,17 +955,6 @@ export default function App() {
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: css }} />
-      {MANUTENCAO && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.92)", zIndex: 9999, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 32, textAlign: "center" }}>
-          <div style={{ fontSize: "3rem", marginBottom: 16 }}>🔧</div>
-          <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: "1.8rem", color: "#e879f9", marginBottom: 12 }}>Sistema em manutenção</div>
-          <div style={{ color: "#9b7ec8", fontSize: ".95rem", lineHeight: 1.7 }}>
-            Estamos realizando melhorias.<br />
-            Voltamos na data <strong style={{ color: "#fdf4ff" }}>{MANUTENCAO_DATA}</strong>.
-            Obrigado!
-          </div>
-        </div>
-      )}
       <div className="grain" />
       <div className="wrap">
         <div className="logo">
