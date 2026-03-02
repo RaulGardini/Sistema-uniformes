@@ -390,15 +390,15 @@ function TelaPagamento({ nome, pecas, onVoltar }) {
   const totalBase = calcTotal(pecas);
 
   const opcoes = [
-    {
-      id:      "pix",
-      icone:   "❖",
-      nome:    "Pix",
-      desc:    "Aprovação imediata · Sem acréscimo",
-      valor:   totalBase,
-      cls:     "pix",
-      valCls:  "pix-val",
-    },
+    // {
+    //   id:      "pix",
+    //   icone:   "❖",
+    //   nome:    "Pix",
+    //   desc:    "Aprovação imediata · Sem acréscimo",
+    //   valor:   totalBase,
+    //   cls:     "pix",
+    //   valCls:  "pix-val",
+    // },
     {
       id:      "credito_lojinha",
       icone:   "🏪",
