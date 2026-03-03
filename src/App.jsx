@@ -17,15 +17,21 @@ const GRUPOS      = [
   { label: "Adulto",   tamanhos: ["PP", "P", "M", "G"] },
   { label: "Infantil", tamanhos: ["P", "M", "G"] },
 ];
-const TODAS_CHAVES = GRUPOS.flatMap(g => g.tamanhos.map(t => `${g.label} ${t}`));
+const GRUPOS_COM_GG = [
+  { label: "Adulto",   tamanhos: ["PP", "P", "M", "G", "GG"] },
+  { label: "Infantil", tamanhos: ["P", "M", "G"] },
+];
+const PECAS_COM_GG = new Set(["Blusa", "Short"]);
+function getPecaGrupos(nome) {
+  return PECAS_COM_GG.has(nome) ? GRUPOS_COM_GG : GRUPOS;
+}
+const TODAS_CHAVES = GRUPOS_COM_GG.flatMap(g => g.tamanhos.map(t => `${g.label} ${t}`));
 
 const fmt  = v => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const fmt2 = v => parseFloat(v.toFixed(2));
 
 const FORMA_LABEL = {
-  pix:             "Pix",
-  cartao_1x:       "Cartão 1×",
-  cartao_2x:       "Cartão 2×",
+  pix_lojinha:     "Pix na lojinha",
   credito_lojinha: "Cartão na lojinha",
 };
 
@@ -316,7 +322,7 @@ function Modal({ nome, onConfirm, onCancel, tipo }) {
         <div className="modal-title">{isConfirm ? "Confirmar pagamento?" : "Remover pedido?"}</div>
         <div className="modal-sub">
           {isConfirm
-            ? <>Confirmar que <strong>{nome}</strong> pagou com cartão na lojinha?<br />O pedido será marcado como pago.</>
+            ? <>Confirmar que <strong>{nome}</strong> já pagou na lojinha?<br />O pedido será marcado como pago.</>
             : <>Tem certeza que deseja remover o pedido de <strong>{nome}</strong>?<br />Esta ação não pode ser desfeita.</>
           }
         </div>
@@ -343,10 +349,11 @@ function QtyControl({ value, onChange }) {
   );
 }
 
-/* ── TELA DE RETORNO DO MERCADO PAGO ── */
-function TelaRetorno({ status, onVoltar }) {
+/* ── TELA DE RETORNO ── */
+function TelaRetorno({ status, forma, onVoltar }) {
   const isFail    = status === "falhou";
   const isLojinha = status === "lojinha";
+  const isPix     = forma === "pix_lojinha";
   return (
     <div className="card">
       <div className="success-box">
@@ -356,14 +363,14 @@ function TelaRetorno({ status, onVoltar }) {
             ? "Pagamento não confirmado!"
             : isLojinha
               ? "Pedido reservado com sucesso!"
-              : "Se você realizou o pix, irá aparecer uma confirmação no seu Email em instantes!"}
+              : "Pedido recebido!"}
         </div>
         <div className="suc-sub">
           {isFail
             ? "O pagamento não foi processado. Você pode tentar novamente."
             : isLojinha
-              ? "Seu pedido foi salvo. Compareça à lojinha TP para efetuar o pagamento com cartão, fique atendo ao WhatsApp para saber a data de retirada dos uniformes!"
-              : "Assim que a confirmação do pagamento aparecer no seu Email, Fique atento no WhatsApp, informaremos em breve a data para você retirar o seu fardamento na loja TP. Obrigado!"}
+              ? `Seu pedido foi salvo. Compareça à lojinha TP para efetuar o pagamento${isPix ? " via PIX" : " com cartão"}, fique atento ao WhatsApp para saber a data de retirada dos uniformes!`
+              : "Fique atento no WhatsApp, informaremos em breve a data para você retirar o seu fardamento na loja TP. Obrigado!"}
         </div>
         <br />
         <button className="btn-ghost" onClick={onVoltar}>← Voltar ao início</button>
@@ -385,20 +392,20 @@ function TelaPagamento({ nome, pecas, onVoltar }) {
   useEffect(() => () => clearTimeout(timerRef.current), []);
 
   if (mostrarPendente) return <TelaRetorno status="pendente" onVoltar={onVoltar} />;
-  if (mostrarLojinha)  return <TelaRetorno status="lojinha"  onVoltar={onVoltar} />;
+  if (mostrarLojinha)  return <TelaRetorno status="lojinha" forma={formaSelecionada} onVoltar={onVoltar} />;
 
   const totalBase = calcTotal(pecas);
 
   const opcoes = [
-    // {
-    //   id:      "pix",
-    //   icone:   "❖",
-    //   nome:    "Pix",
-    //   desc:    "Aprovação imediata · Sem acréscimo",
-    //   valor:   totalBase,
-    //   cls:     "pix",
-    //   valCls:  "pix-val",
-    // },
+    {
+      id:      "pix_lojinha",
+      icone:   "❖",
+      nome:    "Pix na lojinha",
+      desc:    "Pague presencialmente na loja TP · Sem acréscimo",
+      valor:   totalBase,
+      cls:     "lojinha",
+      valCls:  "lojinha-val",
+    },
     {
       id:      "credito_lojinha",
       icone:   "🏪",
@@ -426,7 +433,11 @@ function TelaPagamento({ nome, pecas, onVoltar }) {
           .insert([{
             nome:             nome,
             pecas,
-            pagamento_status: formaSelecionada === "credito_lojinha" ? "pendente_credito_lojinha" : "pendente",
+            pagamento_status: formaSelecionada === "credito_lojinha"
+              ? "pendente_credito_lojinha"
+              : formaSelecionada === "pix_lojinha"
+              ? "pendente_pix_lojinha"
+              : "pendente",
             forma_pagamento:  formaSelecionada,
           }])
           .select()
@@ -441,18 +452,21 @@ function TelaPagamento({ nome, pecas, onVoltar }) {
           .from("pedidos")
           .update({
             forma_pagamento:  formaSelecionada,
-            pagamento_status: formaSelecionada === "credito_lojinha" ? "pendente_credito_lojinha" : "pendente",
+            pagamento_status: formaSelecionada === "credito_lojinha"
+              ? "pendente_credito_lojinha"
+              : formaSelecionada === "pix_lojinha"
+              ? "pendente_pix_lojinha"
+              : "pendente",
           })
           .eq("id", pedidoId);
       }
 
-      // ── Se é pagamento na lojinha, não precisa ir pro MP ──
-      if (formaSelecionada === "credito_lojinha") {
+      // ── Se é pagamento na lojinha (PIX ou cartão), não precisa ir pro MP ──
+      if (formaSelecionada === "credito_lojinha" || formaSelecionada === "pix_lojinha") {
         setMostrarLojinha(true);
         return;
       }
 
-      // ── Pix: vai pro Mercado Pago normalmente ──
       const response = await fetch("/.netlify/functions/criar-pagamento", {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
@@ -526,14 +540,14 @@ function TelaPagamento({ nome, pecas, onVoltar }) {
           ← Voltar
         </button>
         <button
-          className={`btn-primary ${formaSelecionada === "pix" ? "btn-pix" : formaSelecionada === "credito_lojinha" ? "btn-lojinha" : ""}`}
+          className={`btn-primary ${formaSelecionada === "credito_lojinha" || formaSelecionada === "pix_lojinha" ? "btn-lojinha" : ""}`}
           style={{ flex: 1, marginTop: 0 }}
           disabled={!formaSelecionada || processando}
           onClick={irParaPagamento}
         >
           {processando
             ? "Processando…"
-            : formaSelecionada === "credito_lojinha"
+            : formaSelecionada === "credito_lojinha" || formaSelecionada === "pix_lojinha"
               ? "Reservar pedido →"
               : formaSelecionada
                 ? `Pagar ${fmt(opcaoAtual.valor)} →`
@@ -662,7 +676,7 @@ function AlunaPage({ statusRetorno }) {
                     })()}
                   </div>
                   <div className="grupos-wrap" onClick={e => e.stopPropagation()}>
-                    {GRUPOS.map(({ label, tamanhos }) => (
+                    {getPecaGrupos(pNome).map(({ label, tamanhos }) => (
                       <div key={label} className="grupo-bloco">
                         <div className={`grupo-label ${label.toLowerCase()}`}>{label}</div>
                         <div className="tam-grid">
@@ -769,7 +783,7 @@ function AdminPage({ onSair, adminSenha }) {
       const { data: lojinha, error: e2 } = await supabase
         .from("pedidos")
         .select("*")
-        .eq("pagamento_status", "pendente_credito_lojinha")
+        .in("pagamento_status", ["pendente_credito_lojinha", "pendente_pix_lojinha"])
         .order("hora", { ascending: false });
       if (e2) throw e2;
 
@@ -930,19 +944,19 @@ function AdminPage({ onSair, adminSenha }) {
                   <thead>
                     <tr>
                       <th style={{ textAlign: "left", width: 80 }}>Grupo</th>
-                      {["PP", "P", "M", "G"].map(t => <th key={t}>{t}</th>)}
+                      {["PP", "P", "M", "G", "GG"].map(t => <th key={t}>{t}</th>)}
                       <th>Total</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {GRUPOS.map(({ label, tamanhos }) => {
+                    {getPecaGrupos(peca).map(({ label, tamanhos }) => {
                       const sub = tamanhos.reduce((s, t) => s + (totais[peca][`${label} ${t}`] || 0), 0);
                       return (
                         <tr key={label}>
                           <td style={{ textAlign: "left", color: label === "Adulto" ? "#a78bfa" : "#67e8f9", fontWeight: 600, fontSize: ".78rem" }}>
                             {label}
                           </td>
-                          {["PP", "P", "M", "G"].map(t => {
+                          {["PP", "P", "M", "G", "GG"].map(t => {
                             if (!tamanhos.includes(t)) return <td key={t}><span className="tam-zero">–</span></td>;
                             const v = totais[peca][`${label} ${t}`] || 0;
                             return <td key={t}><span className={v > 0 ? "tam-val" : "tam-zero"}>{v > 0 ? v : "–"}</span></td>;
@@ -1047,9 +1061,9 @@ function AdminPage({ onSair, adminSenha }) {
                         })}
                       </div>
                       <div className="pedido-total-lbl">
-                        {fmt(calcTotal(p.pecas) * 1.05)}
+                        {fmt(p.forma_pagamento === "pix_lojinha" ? calcTotal(p.pecas) : calcTotal(p.pecas) * 1.05)}
                         <span style={{ fontSize: ".92rem", color: C.muted, marginLeft: 6 }}>
-                          via Cartão na lojinha
+                          via {FORMA_LABEL[p.forma_pagamento] || p.forma_pagamento}
                         </span>
                       </div>
                     </div>

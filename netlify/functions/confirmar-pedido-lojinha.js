@@ -14,9 +14,9 @@ exports.handler = async (event) => {
     const supabaseUrl        = process.env.VITE_SUPABASE_URL;
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
 
-    // Busca o pedido para calcular o valor com acréscimo
+    // Busca o pedido para calcular o valor
     const getRes = await fetch(
-      `${supabaseUrl}/rest/v1/pedidos?id=eq.${pedidoId}&select=pecas,pagamento_status`,
+      `${supabaseUrl}/rest/v1/pedidos?id=eq.${pedidoId}&select=pecas,pagamento_status,forma_pagamento`,
       {
         headers: {
           apikey:        supabaseServiceKey,
@@ -29,15 +29,16 @@ exports.handler = async (event) => {
     const [pedido] = await getRes.json();
     if (!pedido) throw new Error("Pedido não encontrado");
 
-    // Só confirma se estiver pendente na lojinha
-    if (pedido.pagamento_status !== "pendente_credito_lojinha") {
+    const statusesValidos = ["pendente_credito_lojinha", "pendente_pix_lojinha"];
+    if (!statusesValidos.includes(pedido.pagamento_status)) {
       return {
         statusCode: 400,
         body: JSON.stringify({ error: "Pedido não está pendente na lojinha" }),
       };
     }
 
-    // Calcula valor com 5% de acréscimo do cartão
+    const isPix = pedido.pagamento_status === "pendente_pix_lojinha";
+
     const PRECOS = {
       "Blusa": 60, "Regata": 30, "Short": 60,
       "Calça Moletom": 90, "Blusa Moletom": 90,
@@ -49,7 +50,9 @@ exports.handler = async (event) => {
         totalBase += (qty || 0) * preco;
       }
     }
-    const valorPago = parseFloat((totalBase * 1.05).toFixed(2));
+    // PIX sem acréscimo, cartão +5%
+    const valorPago = parseFloat((isPix ? totalBase : totalBase * 1.05).toFixed(2));
+    const formaPagamento = isPix ? "pix_lojinha" : "credito_lojinha";
 
     // Atualiza para pago
     const updateRes = await fetch(
@@ -64,7 +67,7 @@ exports.handler = async (event) => {
         },
         body: JSON.stringify({
           pagamento_status: "pago",
-          forma_pagamento:  "credito_lojinha",
+          forma_pagamento:  formaPagamento,
           valor_pago:       valorPago,
         }),
       }
@@ -72,7 +75,7 @@ exports.handler = async (event) => {
 
     if (!updateRes.ok) throw new Error("Erro ao atualizar pedido");
 
-    console.log(`Pedido ${pedidoId} confirmado na lojinha | Valor: ${valorPago}`);
+    console.log(`Pedido ${pedidoId} confirmado na lojinha | Forma: ${formaPagamento} | Valor: ${valorPago}`);
     return {
       statusCode: 200,
       headers: { "Content-Type": "application/json" },
