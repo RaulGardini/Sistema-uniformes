@@ -21,7 +21,7 @@ const GRUPOS_COM_GG = [
   { label: "Adulto",   tamanhos: ["PP", "P", "M", "G", "GG"] },
   { label: "Infantil", tamanhos: ["P", "M", "G"] },
 ];
-const PECAS_COM_GG = new Set(["Blusa", "Short"]);
+const PECAS_COM_GG = new Set(["Blusa", "Short", "Calça Moletom"]);
 function getPecaGrupos(nome) {
   return PECAS_COM_GG.has(nome) ? GRUPOS_COM_GG : GRUPOS;
 }
