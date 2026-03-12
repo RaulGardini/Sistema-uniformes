@@ -833,6 +833,9 @@ function AdminPage({ onSair, adminSenha }) {
   const totais = Object.fromEntries(
     NOMES_PECAS.map(p => [p, Object.fromEntries(TODAS_CHAVES.map(k => [k, 0]))])
   );
+  const totaisPendentes = Object.fromEntries(
+    NOMES_PECAS.map(p => [p, Object.fromEntries(TODAS_CHAVES.map(k => [k, 0]))])
+  );
   let receitaTotal = 0;
   (pedidos || []).forEach(p => {
     PECAS_CONFIG.forEach(({ nome, preco }) => {
@@ -840,6 +843,14 @@ function AdminPage({ onSair, adminSenha }) {
         const q = p.pecas?.[nome]?.tamanhos?.[chave] || 0;
         totais[nome][chave] += q;
         receitaTotal += q * preco;
+      });
+    });
+  });
+  (pedidosLojinha || []).forEach(p => {
+    PECAS_CONFIG.forEach(({ nome }) => {
+      TODAS_CHAVES.forEach(chave => {
+        const q = p.pecas?.[nome]?.tamanhos?.[chave] || 0;
+        totaisPendentes[nome][chave] += q;
       });
     });
   });
@@ -950,7 +961,8 @@ function AdminPage({ onSair, adminSenha }) {
                   </thead>
                   <tbody>
                     {getPecaGrupos(peca).map(({ label, tamanhos }) => {
-                      const sub = tamanhos.reduce((s, t) => s + (totais[peca][`${label} ${t}`] || 0), 0);
+                      const subConf = tamanhos.reduce((s, t) => s + (totais[peca][`${label} ${t}`] || 0), 0);
+                      const subPend = tamanhos.reduce((s, t) => s + (totaisPendentes[peca][`${label} ${t}`] || 0), 0);
                       return (
                         <tr key={label}>
                           <td style={{ textAlign: "left", color: label === "Adulto" ? "#a78bfa" : "#67e8f9", fontWeight: 600, fontSize: ".78rem" }}>
@@ -958,10 +970,27 @@ function AdminPage({ onSair, adminSenha }) {
                           </td>
                           {["PP", "P", "M", "G", "GG"].map(t => {
                             if (!tamanhos.includes(t)) return <td key={t}><span className="tam-zero">–</span></td>;
-                            const v = totais[peca][`${label} ${t}`] || 0;
-                            return <td key={t}><span className={v > 0 ? "tam-val" : "tam-zero"}>{v > 0 ? v : "–"}</span></td>;
+                            const vc = totais[peca][`${label} ${t}`] || 0;
+                            const vp = totaisPendentes[peca][`${label} ${t}`] || 0;
+                            return (
+                              <td key={t}>
+                                {vc > 0 || vp > 0 ? (
+                                  <span style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+                                    <span className="tam-val">{vc}</span>
+                                    {vp > 0 && <span style={{ color: C.lojinha, fontSize: ".65rem", fontWeight: 500 }}>+{vp} pend.</span>}
+                                  </span>
+                                ) : (
+                                  <span className="tam-zero">–</span>
+                                )}
+                              </td>
+                            );
                           })}
-                          <td><span style={{ color: C.gold, fontWeight: 600 }}>{sub || "–"}</span></td>
+                          <td>
+                            <span style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+                              <span style={{ color: C.gold, fontWeight: 600 }}>{subConf || "–"}</span>
+                              {subPend > 0 && <span style={{ color: C.lojinha, fontSize: ".65rem", fontWeight: 500 }}>+{subPend} pend.</span>}
+                            </span>
+                          </td>
                         </tr>
                       );
                     })}
